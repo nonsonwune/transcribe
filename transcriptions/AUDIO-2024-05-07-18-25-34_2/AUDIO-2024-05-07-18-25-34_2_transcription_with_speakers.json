@@ -1,0 +1,119 @@
+{
+    "transcription": " Hello. Hello. Who am I onto? Yeah, I'm calling from Jam. Okay, so why are you calling me? I'm calling you because you haven't signed up for what we asked you to sign up for. Okay. What do you want me to sign up for? Where did you register? Where do I register for it? Well, if you go to our website on www.jam.gov.ng, you will see. Okay, so what am I supposed to see there? I don't know. Just go there and look. You bloody fool. All right. Hey, that was me. Why call me a fool? Oh, okay. Sorry. I'm sorry. I'm sorry for calling you a fool. So go to our website. You said it's jam.gov.ng? Yes. Okay. Bye-bye.",
+    "segments": [
+        {
+            "text": " Hello.",
+            "speaker": "SPEAKER_00",
+            "start": 0.0,
+            "end": 2.0
+        },
+        {
+            "text": " Hello.",
+            "speaker": "SPEAKER_01",
+            "start": 2.0,
+            "end": 3.0
+        },
+        {
+            "text": " Who am I onto?",
+            "speaker": "SPEAKER_01",
+            "start": 3.0,
+            "end": 5.0
+        },
+        {
+            "text": " Yeah, I'm calling from Jam.",
+            "speaker": "SPEAKER_00",
+            "start": 5.0,
+            "end": 7.0
+        },
+        {
+            "text": " Okay, so why are you calling me?",
+            "speaker": "SPEAKER_01",
+            "start": 7.0,
+            "end": 10.0
+        },
+        {
+            "text": " I'm calling you because you haven't signed up for what we asked you to sign up for.",
+            "speaker": "SPEAKER_00",
+            "start": 10.0,
+            "end": 17.0
+        },
+        {
+            "text": " Okay.",
+            "speaker": "SPEAKER_01",
+            "start": 17.0,
+            "end": 18.0
+        },
+        {
+            "text": " What do you want me to sign up for?",
+            "speaker": "SPEAKER_01",
+            "start": 18.0,
+            "end": 20.0
+        },
+        {
+            "text": " Where did you register?",
+            "speaker": "SPEAKER_01",
+            "start": 20.0,
+            "end": 21.0
+        },
+        {
+            "text": " Where do I register for it?",
+            "speaker": "SPEAKER_01",
+            "start": 21.0,
+            "end": 23.0
+        },
+        {
+            "text": " Well, if you go to our website on www.jam.gov.ng, you will see.",
+            "speaker": "SPEAKER_00",
+            "start": 23.0,
+            "end": 29.0
+        },
+        {
+            "text": " Okay, so what am I supposed to see there?",
+            "speaker": "SPEAKER_01",
+            "start": 29.0,
+            "end": 33.0
+        },
+        {
+            "text": " I don't know. Just go there and look. You bloody fool.",
+            "speaker": "SPEAKER_00",
+            "start": 33.0,
+            "end": 36.0
+        },
+        {
+            "text": " All right. Hey, that was me. Why call me a fool?",
+            "speaker": "SPEAKER_01",
+            "start": 36.0,
+            "end": 39.0
+        },
+        {
+            "text": " Oh, okay. Sorry. I'm sorry. I'm sorry for calling you a fool.",
+            "speaker": "SPEAKER_00",
+            "start": 39.0,
+            "end": 43.0
+        },
+        {
+            "text": " So go to our website.",
+            "speaker": "SPEAKER_00",
+            "start": 43.0,
+            "end": 45.0
+        },
+        {
+            "text": " You said it's jam.gov.ng?",
+            "speaker": "SPEAKER_01",
+            "start": 45.0,
+            "end": 48.0
+        },
+        {
+            "text": " Yes.",
+            "speaker": "SPEAKER_01",
+            "start": 48.0,
+            "end": 49.0
+        },
+        {
+            "text": " Okay. Bye-bye.",
+            "speaker": "SPEAKER_00",
+            "start": 49.0,
+            "end": 50.0
+        }
+    ]
+}

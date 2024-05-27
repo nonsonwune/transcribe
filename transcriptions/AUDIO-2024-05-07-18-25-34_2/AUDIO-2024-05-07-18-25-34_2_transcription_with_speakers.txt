@@ -1,0 +1,19 @@
+SPEAKER_00:  Hello.
+SPEAKER_01:  Hello.
+SPEAKER_01:  Who am I onto?
+SPEAKER_00:  Yeah, I'm calling from Jam.
+SPEAKER_01:  Okay, so why are you calling me?
+SPEAKER_00:  I'm calling you because you haven't signed up for what we asked you to sign up for.
+SPEAKER_01:  Okay.
+SPEAKER_01:  What do you want me to sign up for?
+SPEAKER_01:  Where did you register?
+SPEAKER_01:  Where do I register for it?
+SPEAKER_00:  Well, if you go to our website on www.jam.gov.ng, you will see.
+SPEAKER_01:  Okay, so what am I supposed to see there?
+SPEAKER_00:  I don't know. Just go there and look. You bloody fool.
+SPEAKER_01:  All right. Hey, that was me. Why call me a fool?
+SPEAKER_00:  Oh, okay. Sorry. I'm sorry. I'm sorry for calling you a fool.
+SPEAKER_00:  So go to our website.
+SPEAKER_01:  You said it's jam.gov.ng?
+SPEAKER_01:  Yes.
+SPEAKER_00:  Okay. Bye-bye.
