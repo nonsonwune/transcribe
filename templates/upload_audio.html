@@ -1,33 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>File Upload</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Transcription Service</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .dark-mode {
+        background-color: #121212;
+        color: #ffffff;
+      }
+      .toggle-switch {
+        display: flex;
+        align-items: center;
+      }
+      .toggle-switch input {
+        display: none;
+      }
+      .toggle-switch label {
+        margin-left: 10px;
+        cursor: pointer;
+      }
+    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Upload Call Recording</h2>
+        <div class="toggle-switch">
+          <input type="checkbox" id="darkModeToggle" />
+          <label for="darkModeToggle">🌚</label>
+        </div>
+      </div>
+      <form
+        id="uploadForm"
+        method="post"
+        enctype="multipart/form-data"
+        class="mb-3"
+      >
+        <input
+          type="file"
+          id="fileInput"
+          name="files"
+          accept=".wav,.mp3,.mp4,.m4a"
+          multiple
+          hidden
+        />
+        <button type="button" id="uploadAudio" class="btn btn-primary">
+          Upload Audio
+        </button>
+        <div id="uploadMessage" class="mt-3"></div>
+      </form>
+      <h3>Recordings to be Processed:</h3>
+      <ul id="fileList" class="list-group mb-3"></ul>
+      <button id="processFiles" class="btn btn-success" disabled>
+        Process Files
+      </button>
+    </div>
+
     <script>
       $(document).ready(function () {
-        $("#fileInput").hide();
-        $("#uploadForm").prepend(
-          '<button id="uploadAudio">Upload Audio</button>'
-        );
+        // Dark mode toggle
+        $("#darkModeToggle").change(function () {
+          if (this.checked) {
+            $("body").addClass("dark-mode");
+          } else {
+            $("body").removeClass("dark-mode");
+          }
+        });
 
+        // File input handling
         $("#uploadAudio").click(function () {
           $("#fileInput").click();
         });
 
         $("#fileInput").change(function () {
           if ($(this).val()) {
-            $.ajax({
-              url: "/clear_uploads",
-              type: "GET",
-              success: function (response) {
-                $("#uploadMessage").text("Uploading...");
-                $("#uploadForm").submit();
-                updateFileList();
-              },
-              error: function () {
-                $("#uploadMessage").text("Failed to clear uploads directory");
-              },
-            });
+            $("#uploadMessage").text("Uploading...");
+            $("#uploadForm").submit();
           }
         });
 
@@ -38,88 +95,67 @@
             $("#uploadMessage").text("No file selected");
             return false;
           }
-
           $.ajax({
-            url: "/",
-            type: "POST",
-            data: new FormData(this),
-            processData: false,
-            contentType: false,
-            success: function (response) {
-              $("#uploadMessage").text("File uploaded successfully");
-              $("#processFiles").prop("disabled", false);
+            url: "/clear_uploads",
+            type: "GET",
+            success: function () {
+              var formData = new FormData();
+              $.each(files, function (i, file) {
+                formData.append("files", file);
+              });
+              $.ajax({
+                url: "/",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+                  $("#uploadMessage").text("Files uploaded successfully");
+                  $("#processFiles").prop("disabled", false);
+                  updateFileList(files);
+                },
+                error: function () {
+                  $("#uploadMessage").text("Upload failed");
+                },
+              });
             },
             error: function () {
-              $("#uploadMessage").text("Upload failed");
+              $("#uploadMessage").text("Failed to clear uploads directory");
             },
           });
         });
 
         $("#processFiles").on("click", function () {
           $("#processFiles").prop("disabled", true);
-          $("#uploadAudio").prop("disabled", true); // Disable the Upload Audio button
+          $("#uploadAudio").prop("disabled", true);
           $("#uploadMessage").text("Processing files...");
           $.ajax({
             url: "/process",
             type: "GET",
-            success: function (response) {
+            success: function () {
               $("#uploadMessage").text(
                 "Processing completed. Downloading files..."
               );
               window.location.href = "/download";
-              $("#uploadAudio").prop("disabled", false); // Re-enable the Upload Audio button
+              $("#uploadAudio").prop("disabled", false);
             },
             error: function () {
               $("#uploadMessage").text("Processing failed");
-              $("#uploadAudio").prop("disabled", false); // Re-enable the button in case of error
+              $("#uploadAudio").prop("disabled", false);
             },
           });
         });
 
-        // Function to check processing status and enable the Upload Audio button if processing is complete
-        function checkProcessingStatus() {
-          $.ajax({
-            url: "/check_processing",
-            type: "GET",
-            success: function (response) {
-              if (response.processingComplete) {
-                $("#uploadAudio").prop("disabled", false); // Enable the Upload Audio button
-              } else {
-                setTimeout(checkProcessingStatus, 3000); // Check again after 3 seconds
-              }
-            },
-            error: function () {
-              $("#uploadMessage").text("Failed to check processing status");
-            },
-          });
-        }
-
-        // Call the function to check processing status after the page loads
-        $(document).ready(function () {
-          checkProcessingStatus();
-        });
-
-        function updateFileList() {
-          var files = $("#fileInput")[0].files;
+        function updateFileList(files) {
           var fileList = $("#fileList");
           fileList.empty();
           $.each(files, function (index, file) {
-            fileList.append("<li>" + file.name + "</li>");
+            fileList.append(
+              '<li class="list-group-item">' + file.name + "</li>"
+            );
           });
         }
       });
     </script>
-  </head>
-  <body>
-    <h2>Upload Call Recording</h2>
-    <form id="uploadForm" method="post" enctype="multipart/form-data">
-      <input type="file" id="fileInput" name="files" multiple />
-      <span id="uploadMessage"></span>
-    </form>
-    <div>
-      <h3>Recoedings to be processed:</h3>
-      <ul id="fileList"></ul>
-    </div>
-    <button id="processFiles">Process Files</button>
   </body>
 </html>
