@@ -1,3 +1,4 @@
+// static/scripts.js
 document.addEventListener("DOMContentLoaded", function () {
   const body = document.body;
   const darkModeToggle = document.getElementById("darkModeToggle");
@@ -5,12 +6,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const fileInput = document.getElementById("fileInput");
   const uploadForm = document.getElementById("uploadForm");
   const uploadMessage = document.getElementById("uploadMessage");
-  const processFilesButton = document.getElementById("processFiles");
+  const transcribeFilesButton = document.getElementById("transcribeFiles");
   const fileList = document.getElementById("fileList");
 
   darkModeToggle.addEventListener("change", function () {
     body.classList.toggle("dark-mode", this.checked);
-    console.log(this.checked ? "Dark mode enabled" : "Dark mode disabled"); // Debugging line
+    console.log(this.checked ? "Dark mode enabled" : "Dark mode disabled");
   });
 
   uploadAudioButton.addEventListener("click", function () {
@@ -19,21 +20,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
   fileInput.addEventListener("change", function (event) {
     if (fileInput.files.length > 0) {
-      uploadMessage.textContent = "Uploading...";
+      uploadMessage.textContent = "Files selected, ready to upload.";
       uploadMessage.className = "alert alert-info";
       uploadMessage.style.display = "block";
-      event.preventDefault();
-      submitFormAsynchronously();
-      uploadForm.submit();
+      transcribeFilesButton.disabled = false; // Enable the button after files are selected
     }
   });
 
   uploadForm.addEventListener("submit", function (event) {
-    event.preventDefault();
+    event.preventDefault(); // Prevent the default form submission behavior
+
     const formData = new FormData(uploadForm);
 
     fetch("/clear_uploads")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Clear uploads failed: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(() => {
         fetch("/", {
           method: "POST",
@@ -41,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
           .then((response) => {
             if (!response.ok) {
-              throw new Error("Network response was not ok");
+              throw new Error(`Upload failed: ${response.statusText}`);
             }
             return response.json();
           })
@@ -49,40 +54,48 @@ document.addEventListener("DOMContentLoaded", function () {
             uploadMessage.textContent = "Files uploaded successfully";
             uploadMessage.className = "alert alert-success";
             uploadMessage.style.display = "block";
-            processFilesButton.disabled = false;
+            transcribeFilesButton.disabled = false;
             updateFileList(fileInput.files);
           })
           .catch((error) => {
+            console.error(error);
             uploadMessage.textContent = "Upload failed";
             uploadMessage.className = "alert alert-danger";
             uploadMessage.style.display = "block";
           });
       })
       .catch((error) => {
+        console.error(error);
         uploadMessage.textContent = "Failed to clear uploads directory";
         uploadMessage.className = "alert alert-danger";
         uploadMessage.style.display = "block";
       });
   });
 
-  processFilesButton.addEventListener("click", function () {
-    processFilesButton.disabled = true;
+  transcribeFilesButton.addEventListener("click", function () {
+    transcribeFilesButton.disabled = true;
     uploadAudioButton.disabled = true;
-    uploadMessage.textContent = "Processing files...";
+    uploadMessage.textContent = "Transcribing files...";
     uploadMessage.className = "alert alert-info";
     uploadMessage.style.display = "block";
     fetch("/process")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Transcribe files failed: ${response.statusText}`);
+        }
+        return response.json();
+      })
       .then(() => {
         uploadMessage.textContent =
-          "Processing completed. Downloading files...";
+          "Transcription completed. Downloading files...";
         uploadMessage.className = "alert alert-success";
         uploadMessage.style.display = "block";
         window.location.href = "/download";
         uploadAudioButton.disabled = false;
       })
       .catch((error) => {
-        uploadMessage.textContent = "Processing failed";
+        console.error(error);
+        uploadMessage.textContent = "Transcription failed";
         uploadMessage.className = "alert alert-danger";
         uploadMessage.style.display = "block";
         uploadAudioButton.disabled = false;

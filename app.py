@@ -1,3 +1,4 @@
+# app.py
 import os
 import logging
 from pathlib import Path
@@ -9,6 +10,7 @@ from flask import (
     render_template,
     redirect,
     url_for,
+    jsonify,
 )
 import zipfile
 from werkzeug.utils import secure_filename
@@ -39,12 +41,7 @@ transcriptions_dir.mkdir(exist_ok=True)
 def clear_uploads():
     for file in uploads_dir.iterdir():
         file.unlink()
-    return "Uploads directory cleared", 200
-
-
-# @app.route("/", methods=["GET", "POST"])
-# def index():
-#     return render_template("index.html")
+    return jsonify({"message": "Uploads directory cleared"}), 200
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -68,7 +65,12 @@ def process_files():
     auth_token = os.getenv("PYANNOTE_AUTH_TOKEN")
     if not auth_token:
         logging.error("PYANNOTE_AUTH_TOKEN environment variable is not set.")
-        return "PYANNOTE_AUTH_TOKEN environment variable is not set.", 400
+        return (
+            jsonify(
+                {"message": "PYANNOTE_AUTH_TOKEN environment variable is not set."}
+            ),
+            400,
+        )
 
     service = TranscriptionService(auth_token)
     audio_files = list(uploads_dir.iterdir())
@@ -84,10 +86,7 @@ def process_files():
 
 @app.route("/check_processing", methods=["GET"])
 def check_processing():
-    # Get a list of all uploaded files
     uploaded_files = [f.name for f in uploads_dir.iterdir() if f.is_file()]
-
-    # Check if each uploaded file has corresponding processed files
     processing_complete = all(
         any(
             Path(transcriptions_dir, f"{Path(file).stem}.{ext}").exists()
@@ -96,14 +95,13 @@ def check_processing():
         for file in uploaded_files
     ) and not any(uploads_dir.iterdir())
 
-    return {"processingComplete": processing_complete}
+    return jsonify({"processingComplete": processing_complete})
 
 
 @app.route("/download", methods=["GET"])
 def download_files():
-    # Check if there are any files in the transcriptions directory
     if not any(transcriptions_dir.iterdir()):
-        return "No processed files available for download.", 400
+        return jsonify({"message": "No processed files available for download."}), 400
 
     zip_path = Path("processed_files.zip")
     with zipfile.ZipFile(zip_path, "w") as zipf:
@@ -112,7 +110,6 @@ def download_files():
                 file_path = os.path.join(root, file)
                 arcname = os.path.relpath(file_path, transcriptions_dir)
                 zipf.write(file_path, arcname)
-    # Clear the uploads directory after downloading
     for file in uploads_dir.iterdir():
         file.unlink()
 
