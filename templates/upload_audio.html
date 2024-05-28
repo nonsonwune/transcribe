@@ -25,7 +25,13 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h2>Upload Call Recording</h2>
         </div>
-        <form id="uploadForm" enctype="multipart/form-data" class="mb-3">
+        <form
+          id="uploadForm"
+          action="/"
+          method="post"
+          enctype="multipart/form-data"
+          class="mb-3"
+        >
           <input
             type="file"
             id="fileInput"
@@ -41,9 +47,6 @@
         </form>
         <h3>Recordings to be Transcribed:</h3>
         <ul id="fileList" class="list-group mb-3"></ul>
-        <button id="transcribeFiles" class="btn btn-success" disabled>
-          Transcribe Files
-        </button>
       </div>
     </div>
   </body>
