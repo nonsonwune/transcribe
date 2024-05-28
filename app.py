@@ -1,15 +1,14 @@
 import os
 import logging
 from pathlib import Path
-from flask import Flask, request, send_file, render_template, redirect, url_for, jsonify
+from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from multiprocessing import Pool
 from transcription_service import TranscriptionService, process_audio_file_wrapper
 from utils import allowed_file
-from time import sleep
-import shutil
 import zipfile
+import shutil
 
 load_dotenv()
 
@@ -53,7 +52,6 @@ def upload_files():
                 file_path = uploads_dir / filename
                 file.save(file_path)
                 logging.info(f"Uploaded file: {filename}, saved to: {file_path}")
-
         # Process files immediately after upload
         process_files()
         return jsonify({"message": "Files uploaded and processed successfully"}), 200
@@ -91,17 +89,39 @@ def prepare_files_for_download():
         zip_path.unlink()
 
     with zipfile.ZipFile(zip_path, "w") as zipf:
-        for file in transcriptions_dir.iterdir():
-            try:
-                zipf.write(file, arcname=file.name)
-            except PermissionError:
-                logging.error(f"Could not add {file} to zip due to permission issues.")
+        for root, dirs, files in os.walk(transcriptions_dir):
+            for file in files:
+                file_path = Path(root) / file
+                arcname = file_path.relative_to(transcriptions_dir)
+                zipf.write(file_path, arcname)
 
-    for file in transcriptions_dir.iterdir():
-        try:
-            file.unlink()
-        except PermissionError:
-            logging.error(f"Could not delete {file} due to permission issues.")
+    logging.info("Processed files zipped and ready for download.")
+
+    # Cleanup the transcriptions directory
+    for root, dirs, files in os.walk(transcriptions_dir, topdown=False):
+        for name in files:
+            file_path = Path(root) / name
+            try:
+                file_path.unlink()
+            except PermissionError as e:
+                logging.error(f"PermissionError: {e}")
+        for name in dirs:
+            dir_path = Path(root) / name
+            try:
+                dir_path.rmdir()
+            except PermissionError as e:
+                logging.error(f"PermissionError: {e}")
+
+
+@app.route("/download", methods=["GET"])
+def download_files():
+    zip_path = Path("processed_files.zip")
+    if not zip_path.exists():
+        logging.error("No processed files available for download.")
+        return jsonify({"message": "No processed files available for download."}), 400
+
+    logging.info("Processed files available for download.")
+    return send_file(zip_path, as_attachment=True, download_name="processed_files.zip")
 
 
 if __name__ == "__main__":
