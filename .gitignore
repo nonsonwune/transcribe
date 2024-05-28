@@ -164,3 +164,4 @@ cython_debug/
 transcriptions/
 uploads/
 non_wave_files/
+processed_files.zip

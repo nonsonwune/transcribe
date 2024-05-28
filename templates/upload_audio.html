@@ -27,7 +27,6 @@
         </div>
         <form
           id="uploadForm"
-          action="/"
           method="post"
           enctype="multipart/form-data"
           class="mb-3"
@@ -47,6 +46,13 @@
         </form>
         <h3>Recordings to be Transcribed:</h3>
         <ul id="fileList" class="list-group mb-3"></ul>
+        <button
+          id="transcribeFiles"
+          class="btn btn-success"
+          style="display: none"
+        >
+          Transcribe Files
+        </button>
         <button
           id="downloadFiles"
           class="btn btn-success"

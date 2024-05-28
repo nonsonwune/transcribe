@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const uploadForm = document.getElementById("uploadForm");
   const uploadMessage = document.getElementById("uploadMessage");
   const fileList = document.getElementById("fileList");
+  const transcribeFilesButton = document.getElementById("transcribeFiles");
   const downloadFilesButton = document.getElementById("downloadFiles");
 
   darkModeToggle.addEventListener("change", function () {
@@ -23,8 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
       uploadMessage.textContent = "Files selected, ready to upload.";
       uploadMessage.className = "alert alert-info";
       uploadMessage.style.display = "block";
-      // Directly submit the form when files are selected
-      uploadForm.submit();
+      transcribeFilesButton.style.display = "block"; // Show the transcribe button
     }
   });
 
@@ -54,16 +54,44 @@ document.addEventListener("DOMContentLoaded", function () {
       })
       .then(() => {
         uploadMessage.textContent =
-          "Files uploaded and processed successfully.";
+          "Files uploaded successfully. Ready to transcribe.";
         uploadMessage.className = "alert alert-success";
         uploadMessage.style.display = "block";
-        downloadFilesButton.style.display = "block";
+        transcribeFilesButton.style.display = "block"; // Show the transcribe button
       })
       .catch((error) => {
         console.error(error);
-        uploadMessage.textContent = "Upload or processing failed.";
+        uploadMessage.textContent = "Upload failed.";
         uploadMessage.className = "alert alert-danger";
         uploadMessage.style.display = "block";
+      });
+  });
+
+  transcribeFilesButton.addEventListener("click", function () {
+    transcribeFilesButton.disabled = true;
+    uploadMessage.textContent = "Transcription in progress...";
+    uploadMessage.className = "alert alert-info";
+    uploadMessage.style.display = "block";
+
+    fetch("/process")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Transcription failed: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        uploadMessage.textContent = "Transcription completed.";
+        uploadMessage.className = "alert alert-success";
+        uploadMessage.style.display = "block";
+        downloadFilesButton.style.display = "block"; // Show the download button
+      })
+      .catch((error) => {
+        console.error(error);
+        uploadMessage.textContent = "Transcription failed.";
+        uploadMessage.className = "alert alert-danger";
+        uploadMessage.style.display = "block";
+        transcribeFilesButton.disabled = false;
       });
   });
 

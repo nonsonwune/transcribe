@@ -52,24 +52,28 @@ def upload_files():
                 file_path = uploads_dir / filename
                 file.save(file_path)
                 logging.info(f"Uploaded file: {filename}, saved to: {file_path}")
-        # Process files immediately after upload
-        process_files()
-        return jsonify({"message": "Files uploaded and processed successfully"}), 200
+        return jsonify({"message": "Files uploaded successfully"}), 200
     return render_template("upload_audio.html")
 
 
+@app.route("/process", methods=["GET"])
 def process_files():
     auth_token = os.getenv("PYANNOTE_AUTH_TOKEN")
     if not auth_token:
         logging.error("PYANNOTE_AUTH_TOKEN environment variable is not set.")
-        return
+        return (
+            jsonify(
+                {"message": "PYANNOTE_AUTH_TOKEN environment variable is not set."}
+            ),
+            400,
+        )
 
     service = TranscriptionService(auth_token)
     audio_files = list(uploads_dir.iterdir())
 
     if not audio_files:
         logging.error("No audio files found in uploads directory.")
-        return
+        return jsonify({"message": "No audio files found in uploads directory."}), 400
 
     logging.info(f"Found {len(audio_files)} audio files to process.")
 
@@ -81,6 +85,7 @@ def process_files():
 
     logging.info("Processing complete. Preparing files for download.")
     prepare_files_for_download()
+    return jsonify({"message": "Transcription completed."}), 200
 
 
 def prepare_files_for_download():
@@ -121,7 +126,16 @@ def download_files():
         return jsonify({"message": "No processed files available for download."}), 400
 
     logging.info("Processed files available for download.")
-    return send_file(zip_path, as_attachment=True, download_name="processed_files.zip")
+
+    response = send_file(
+        zip_path, as_attachment=True, download_name="processed_files.zip"
+    )
+
+    # Cleanup the uploads directory
+    for file in uploads_dir.iterdir():
+        file.unlink()
+
+    return response
 
 
 if __name__ == "__main__":
