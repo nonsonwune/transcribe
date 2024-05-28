@@ -1,0 +1,123 @@
+/* Import Google Font Poppins */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: #f4f4f4;
+  transition: background-color 0.3s, color 0.2s;
+}
+
+.dark-mode {
+  background-color: rgb(0, 0, 0);
+}
+
+.flex-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Default styles for.main-container */
+.main-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.138);
+  background-color: #efeffb;
+  border-radius: 8px;
+  animation: fadeIn 1s ease-in-out;
+  transition: background-color 0.3s, color 0.2s, box-shadow 0.3s;
+}
+
+/* Dark mode styles for.main-container */
+.dark-mode .main-container {
+  background-color: #000000; /* Adjusted background color for dark mode */
+  color: #ffffff; /* Adjusted text color for dark mode */
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.195); /* Adjusted shadow for dark mode */
+}
+
+/* Dark mode styles for specific text elements within.main-container */
+.dark-mode .main-container h2,
+.dark-mode .main-container h3 {
+  color: #ffffffb3; /* Adjusted text color for dark mode */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+h2,
+h3 {
+  color: #1a1a1d;
+  text-align: center;
+}
+
+button.btn {
+  background-color: #1a1a1d;
+  border-color: #1a1a1d;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+button.btn:hover {
+  background-color: #007bff;
+  transform: scale(1.05);
+}
+
+.alert {
+  border-radius: 4px;
+  margin-top: 20px;
+  display: none;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-switch label {
+  margin-left: 10px;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 15px;
+  width: 40px;
+  height: 20px;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.toggle-switch label::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background-color: #fff;
+  border-radius: 50%;
+  top: 1px;
+  left: 1px;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + label {
+  background-color: #4caf50;
+}
+
+.toggle-switch input:checked + label::after {
+  transform: translateX(20px);
+}

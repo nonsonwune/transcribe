@@ -51,15 +51,15 @@ def clear_uploads():
 def upload_files():
     if request.method == "POST":
         if "files" not in request.files:
-            return "No files part", 400
+            return jsonify({"message": "No files part"}), 400
         files = request.files.getlist("files")
         for file in files:
             if file.filename == "":
-                return "No selected file", 400
+                return jsonify({"message": "No selected file"}), 400
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(uploads_dir, filename))
-        return "Files uploaded successfully", 200
+        return jsonify({"message": "Files uploaded successfully"}), 200
     return render_template("upload_audio.html")
 
 
