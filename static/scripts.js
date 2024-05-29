@@ -14,7 +14,7 @@ $(document).ready(function () {
       formData.append("files", files[i]);
     }
 
-    $("#uploadStatus").text("Uploading...").show();
+    $("#uploadStatus").text("Transcribing audio").show();
 
     $.ajax({
       url: "/",
