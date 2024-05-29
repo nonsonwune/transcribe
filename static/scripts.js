@@ -1,83 +1,60 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const body = document.body;
-  const darkModeToggle = document.getElementById("darkModeToggle");
-  const uploadAudioButton = document.getElementById("uploadAudio");
-  const fileInput = document.getElementById("fileInput");
-  const uploadForm = document.getElementById("uploadForm");
-  const uploadMessage = document.getElementById("uploadMessage");
-  const fileList = document.getElementById("fileList");
-  const downloadFilesButton = document.getElementById("downloadFiles");
+$(document).ready(function () {
+  $("#uploadForm").on("submit", function (e) {
+    e.preventDefault();
 
-  darkModeToggle.addEventListener("change", function () {
-    body.classList.toggle("dark-mode", this.checked);
-    console.log(this.checked ? "Dark mode enabled" : "Dark mode disabled");
-  });
+    var formData = new FormData();
+    var files = $("#audioFiles")[0].files;
 
-  uploadAudioButton.addEventListener("click", function () {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener("change", function (event) {
-    if (fileInput.files.length > 0) {
-      updateFileList(fileInput.files);
-      uploadMessage.textContent = "Files selected, ready to upload.";
-      uploadMessage.className = "alert alert-info";
-      uploadMessage.style.display = "block";
-      // Directly submit the form when files are selected
-      uploadForm.submit();
+    if (files.length === 0) {
+      alert("Please select at least one file.");
+      return;
     }
+
+    for (var i = 0; i < files.length; i++) {
+      formData.append("files", files[i]);
+    }
+
+    $("#uploadStatus").text("Uploading...").show();
+
+    $.ajax({
+      url: "/",
+      type: "POST",
+      data: formData,
+      contentType: false,
+      processData: false,
+      success: function (response) {
+        $("#uploadStatus").text(response.message);
+        if (response.message === "Files uploaded and processed successfully") {
+          $("#transcribeBtn").show();
+        }
+      },
+      error: function (response) {
+        $("#uploadStatus").text("Error uploading files").show();
+      },
+    });
   });
 
-  uploadForm.addEventListener("submit", function (event) {
-    event.preventDefault(); // Prevent the default form submission behavior
+  $("#transcribeBtn").on("click", function () {
+    $("#transcriptionStatus").text("Transcribing...").show();
 
-    const formData = new FormData(uploadForm);
-
-    fetch("/clear_uploads")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Clear uploads failed: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(() => {
-        return fetch("/", {
-          method: "POST",
-          body: formData,
-        });
-      })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(() => {
-        uploadMessage.textContent =
-          "Files uploaded and processed successfully.";
-        uploadMessage.className = "alert alert-success";
-        uploadMessage.style.display = "block";
-        downloadFilesButton.style.display = "block";
-      })
-      .catch((error) => {
-        console.error(error);
-        uploadMessage.textContent = "Upload or processing failed.";
-        uploadMessage.className = "alert alert-danger";
-        uploadMessage.style.display = "block";
-      });
+    $.ajax({
+      url: "/download",
+      type: "GET",
+      success: function (response) {
+        $("#transcriptionStatus").text("Transcription complete.").show();
+        $("#downloadBtn").show();
+      },
+      error: function (response) {
+        $("#transcriptionStatus").text("Error during transcription.").show();
+      },
+    });
   });
 
-  downloadFilesButton.addEventListener("click", function () {
+  $("#downloadBtn").on("click", function () {
     window.location.href = "/download";
   });
 
-  function updateFileList(files) {
-    fileList.innerHTML = "";
-    Array.from(files).forEach((file) => {
-      const listItem = document.createElement("li");
-      listItem.className = "list-group-item";
-      listItem.textContent = file.name;
-      fileList.appendChild(listItem);
-    });
-  }
+  $("#darkModeToggle").on("change", function () {
+    $("body").toggleClass("dark-mode");
+  });
 });
