@@ -1,13 +1,13 @@
 steps:
-  - name: "gcr.io/cloud-builders/gcloud"
-    args: ["app", "deploy"]
-    entrypoint: "bash"
-    env:
-      - "CLOUDSDK_CORE_PROJECT=nonso-audio-transcriber "
-  - name: "ubuntu"
-    args: ["apt-get", "update"]
-  - name: "ubuntu"
-    args: ["apt-get", "install", "-y", "ffmpeg"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/app-with-ffmpeg", "."]
+    dir: "."
 
-options:
-  machineType: "N1_HIGHCPU_8"
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/app-with-ffmpeg"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: ["app", "deploy", "--image-url", "gcr.io/$PROJECT_ID/app-with-ffmpeg"]
+
+images:
+  - "gcr.io/$PROJECT_ID/app-with-ffmpeg"
