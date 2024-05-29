@@ -137,6 +137,4 @@ def download_files():
 
 
 if __name__ == "__main__":
-    from waitress import serve
-
-    serve(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
+    app.run(debug=True, use_reloader=False)
