@@ -23,7 +23,7 @@ $(document).ready(function () {
       formData.append("files", file);
     });
 
-    $("#statusMessage").text("Uploading and transcribing...").show();
+    $("#statusMessage").text("Transcribing Audio....").show();
     $("#transcribeButton").prop("disabled", true);
 
     $.ajax({
