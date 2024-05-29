@@ -46,6 +46,32 @@
           >Download Transcribed Files</a
         >
       </div>
+      <footer>
+        <div class="social-icons">
+          <a href="https://www.linkedin.com/in/cnonsonwune/" target="_blank"
+            ><img
+              src="{{ url_for('static', filename='icons/linkedin-icon.png') }}"
+              alt="LinkedIn"
+          /></a>
+          <a href="https://github.com/nonsonwune" target="_blank"
+            ><img
+              src="{{ url_for('static', filename='icons/github-icon.png') }}"
+              alt="GitHub"
+          /></a>
+          <a href="https://twitter.com/nonsonwune" target="_blank"
+            ><img
+              src="{{ url_for('static', filename='icons/x-icon.png') }}"
+              alt="Twitter"
+          /></a>
+        </div>
+        <div class="dark-mode">
+          <img
+            id="dark-mode-icon"
+            src="{{ url_for('static', filename='icons/dark-mode-icon.png') }}"
+            alt="Toggle Dark Mode"
+          />
+        </div>
+      </footer>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
