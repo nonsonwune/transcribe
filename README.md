@@ -1,4 +1,3 @@
-
 # Audio Transcription Service
 
 This project provides an audio transcription service that allows users to upload audio files, perform speaker diarization, and download the transcribed text files in various formats.
@@ -103,6 +102,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License.
+
 ```
 
 ## GitHub Repository
