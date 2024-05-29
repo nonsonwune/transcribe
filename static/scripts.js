@@ -1,20 +1,30 @@
 $(document).ready(function () {
+  $("#darkModeToggle").on("change", function () {
+    $("body").toggleClass("dark-mode");
+  });
+
+  let files;
+
+  $("#audioFile").on("change", function () {
+    files = this.files;
+    $("#fileName").text(files.length > 0 ? files[0].name : "");
+    $("#transcribeButton").prop("disabled", files.length === 0);
+  });
+
   $("#uploadForm").on("submit", function (e) {
     e.preventDefault();
-
-    var formData = new FormData();
-    var files = $("#audioFiles")[0].files;
-
-    if (files.length === 0) {
-      alert("Please select at least one file.");
+    if (!files) {
+      alert("Please select a file first.");
       return;
     }
 
-    for (var i = 0; i < files.length; i++) {
-      formData.append("files", files[i]);
-    }
+    let formData = new FormData();
+    $.each(files, function (i, file) {
+      formData.append("files", file);
+    });
 
-    $("#uploadStatus").text("Transcribing audio").show();
+    $("#statusMessage").text("Uploading and transcribing...").show();
+    $("#transcribeButton").prop("disabled", true);
 
     $.ajax({
       url: "/",
@@ -23,38 +33,50 @@ $(document).ready(function () {
       contentType: false,
       processData: false,
       success: function (response) {
-        $("#uploadStatus").text(response.message);
-        if (response.message === "Files uploaded and processed successfully") {
-          $("#transcribeBtn").show();
-        }
+        $("#statusMessage").text("Files uploaded successfully.");
+        transcribe();
       },
       error: function (response) {
-        $("#uploadStatus").text("Error uploading files").show();
+        $("#statusMessage").text("Failed to upload files.");
+        $("#transcribeButton").prop("disabled", false);
       },
     });
   });
 
-  $("#transcribeBtn").on("click", function () {
-    $("#transcriptionStatus").text("Transcribing...").show();
-
+  function transcribe() {
     $.ajax({
-      url: "/download",
+      url: "/clear_uploads",
       type: "GET",
       success: function (response) {
-        $("#transcriptionStatus").text("Transcription complete.").show();
-        $("#downloadBtn").show();
+        $("#statusMessage").text("Transcription in progress...");
+
+        // Simulate long process
+        setTimeout(function () {
+          $.ajax({
+            url: "/download",
+            type: "GET",
+            success: function () {
+              $("#statusMessage").text(
+                "Transcription complete. You can download the files now."
+              );
+              $("#downloadLink").show();
+            },
+            error: function () {
+              $("#statusMessage").text("Failed to complete transcription.");
+              $("#transcribeButton").prop("disabled", false);
+            },
+          });
+        }, 5000);
       },
       error: function (response) {
-        $("#transcriptionStatus").text("Error during transcription.").show();
+        $("#statusMessage").text("Failed to clear uploads.");
+        $("#transcribeButton").prop("disabled", false);
       },
     });
-  });
+  }
 
-  $("#downloadBtn").on("click", function () {
+  $("#downloadLink").on("click", function (e) {
+    e.preventDefault();
     window.location.href = "/download";
-  });
-
-  $("#darkModeToggle").on("change", function () {
-    $("body").toggleClass("dark-mode");
   });
 });
