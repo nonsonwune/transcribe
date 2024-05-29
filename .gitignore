@@ -165,3 +165,5 @@ transcriptions/
 uploads/
 non_wave_files/
 .zip
+
+processed_files.zip

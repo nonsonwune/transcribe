@@ -34,7 +34,7 @@ body {
 .dark-mode .main-container {
   background-color: #000000; /* Adjusted background color for dark mode */
   color: #ffffff; /* Adjusted text color for dark mode */
-  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.195); /* Adjusted shadow for dark mode */
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.832); /* Adjusted shadow for dark mode */
 }
 
 /* Dark mode styles for specific text elements within.main-container */

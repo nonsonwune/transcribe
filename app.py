@@ -27,6 +27,10 @@ uploads_dir.mkdir(exist_ok=True)
 transcriptions_dir = Path("transcriptions")
 transcriptions_dir.mkdir(exist_ok=True)
 
+# Ensure the non_wave_files directory exists
+non_wave_files_dir = Path("non_wave_files")
+non_wave_files_dir.mkdir(exist_ok=True)
+
 
 @app.route("/clear_uploads", methods=["GET"])
 def clear_uploads():
@@ -112,6 +116,14 @@ def prepare_files_for_download():
             except PermissionError as e:
                 logging.error(f"PermissionError: {e}")
 
+    # Cleanup the non_wave_files directory
+    for file in non_wave_files_dir.iterdir():
+        try:
+            file.unlink()
+            logging.info(f"Deleted non-wave file: {file}")
+        except PermissionError as e:
+            logging.error(f"PermissionError: {e}")
+
 
 @app.route("/download", methods=["GET"])
 def download_files():
@@ -125,4 +137,6 @@ def download_files():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    from waitress import serve
+
+    serve(app, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
