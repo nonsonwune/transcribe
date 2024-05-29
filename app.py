@@ -8,7 +8,6 @@ from multiprocessing import Pool
 from transcription_service import TranscriptionService, process_audio_file_wrapper
 from utils import allowed_file
 import zipfile
-import shutil
 
 load_dotenv()
 
@@ -19,15 +18,11 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
-# Ensure the uploads directory exists
+# Ensure the directories exist
 uploads_dir = Path("uploads")
 uploads_dir.mkdir(exist_ok=True)
-
-# Ensure the transcriptions directory exists
 transcriptions_dir = Path("transcriptions")
 transcriptions_dir.mkdir(exist_ok=True)
-
-# Ensure the non_wave_files directory exists
 non_wave_files_dir = Path("non_wave_files")
 non_wave_files_dir.mkdir(exist_ok=True)
 
