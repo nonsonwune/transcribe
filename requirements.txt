@@ -7,6 +7,7 @@ async-timeout==4.0.3
 attrs==23.2.0
 audioread==3.0.1
 blinker==1.8.2
+build==1.2.1
 certifi==2024.2.2
 cffi==1.16.0
 charset-normalizer==3.3.2
@@ -56,6 +57,7 @@ optuna==3.6.1
 packaging==24.0
 pandas==2.2.2
 pillow==10.3.0
+pip-tools==7.4.1
 platformdirs==4.2.1
 pooch==1.8.1
 pretty-errors==1.2.25
@@ -70,6 +72,7 @@ pycparser==2.22
 pydub==0.25.1
 Pygments==2.18.0
 pyparsing==3.1.2
+pyproject_hooks==1.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytorch-lightning==2.2.4
@@ -97,6 +100,7 @@ tabulate==0.9.0
 tensorboardX==2.6.2.2
 threadpoolctl==3.5.0
 tiktoken==0.7.0
+tomli==2.0.1
 torch==2.2.2
 torch-audiomentations==0.11.1
 torch-pitch-shift==1.2.4
