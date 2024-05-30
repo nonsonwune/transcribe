@@ -10,10 +10,8 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-RUN pip install --upgrade pip
-
-# Install the Python dependencies with a mirror
-RUN pip install --default-timeout=1000 -r requirements.txt
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables
 ENV PYANNOTE_AUTH_TOKEN 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

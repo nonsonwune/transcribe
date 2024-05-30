@@ -38,6 +38,7 @@ def clear_uploads():
 @app.route("/", methods=["GET", "POST"])
 def upload_files():
     try:
+        logging.info("Upload files endpoint hit")
         if request.method == "POST":
             if "files" not in request.files:
                 logging.error("No files part in request")
@@ -60,82 +61,102 @@ def upload_files():
             )
         return render_template("upload_audio.html")
     except Exception as e:
-        logging.error(f"Exception occurred: {e}", exc_info=True)
+        logging.error(f"Exception occurred in upload_files: {e}", exc_info=True)
         return jsonify({"message": "Internal server error"}), 500
 
 
 def process_files():
-    auth_token = os.getenv("PYANNOTE_AUTH_TOKEN")
-    if not auth_token:
-        logging.error("PYANNOTE_AUTH_TOKEN environment variable is not set.")
-        return
+    try:
+        logging.info("Starting file processing")
+        auth_token = os.getenv("PYANNOTE_AUTH_TOKEN")
+        if not auth_token:
+            logging.error("PYANNOTE_AUTH_TOKEN environment variable is not set.")
+            return
 
-    service = TranscriptionService(auth_token)
-    audio_files = list(uploads_dir.iterdir())
+        service = TranscriptionService(auth_token)
+        audio_files = list(uploads_dir.iterdir())
 
-    if not audio_files:
-        logging.error("No audio files found in uploads directory.")
-        return
+        if not audio_files:
+            logging.error("No audio files found in uploads directory.")
+            return
 
-    logging.info(f"Found {len(audio_files)} audio files to process.")
+        logging.info(f"Found {len(audio_files)} audio files to process.")
 
-    with Pool(processes=4) as pool:
-        pool.map(
-            process_audio_file_wrapper,
-            [(service, audio_file) for audio_file in audio_files],
-        )
+        with Pool(processes=4) as pool:
+            pool.map(
+                process_audio_file_wrapper,
+                [(service, audio_file) for audio_file in audio_files],
+            )
 
-    logging.info("Processing complete. Preparing files for download.")
-    prepare_files_for_download()
+        logging.info("Processing complete. Preparing files for download.")
+        prepare_files_for_download()
+    except Exception as e:
+        logging.error(f"Exception occurred in process_files: {e}", exc_info=True)
 
 
 def prepare_files_for_download():
-    zip_path = Path("processed_files.zip")
-    if zip_path.exists():
-        zip_path.unlink()
+    try:
+        logging.info("Preparing files for download")
+        zip_path = Path("processed_files.zip")
+        if zip_path.exists():
+            zip_path.unlink()
 
-    with zipfile.ZipFile(zip_path, "w") as zipf:
-        for root, dirs, files in os.walk(transcriptions_dir):
-            for file in files:
-                file_path = Path(root) / file
-                arcname = file_path.relative_to(transcriptions_dir)
-                zipf.write(file_path, arcname)
+        with zipfile.ZipFile(zip_path, "w") as zipf:
+            for root, dirs, files in os.walk(transcriptions_dir):
+                for file in files:
+                    file_path = Path(root) / file
+                    arcname = file_path.relative_to(transcriptions_dir)
+                    zipf.write(file_path, arcname)
 
-    logging.info("Processed files zipped and ready for download.")
+        logging.info("Processed files zipped and ready for download.")
 
-    # Cleanup the transcriptions directory
-    for root, dirs, files in os.walk(transcriptions_dir, topdown=False):
-        for name in files:
-            file_path = Path(root) / name
+        # Cleanup the transcriptions directory
+        for root, dirs, files in os.walk(transcriptions_dir, topdown=False):
+            for name in files:
+                file_path = Path(root) / name
+                try:
+                    file_path.unlink()
+                except PermissionError as e:
+                    logging.error(f"PermissionError: {e}")
+            for name in dirs:
+                dir_path = Path(root) / name
+                try:
+                    dir_path.rmdir()
+                except PermissionError as e:
+                    logging.error(f"PermissionError: {e}")
+
+        # Cleanup the non_wave_files directory
+        for file in non_wave_files_dir.iterdir():
             try:
-                file_path.unlink()
+                file.unlink()
+                logging.info(f"Deleted non-wave file: {file}")
             except PermissionError as e:
                 logging.error(f"PermissionError: {e}")
-        for name in dirs:
-            dir_path = Path(root) / name
-            try:
-                dir_path.rmdir()
-            except PermissionError as e:
-                logging.error(f"PermissionError: {e}")
-
-    # Cleanup the non_wave_files directory
-    for file in non_wave_files_dir.iterdir():
-        try:
-            file.unlink()
-            logging.info(f"Deleted non-wave file: {file}")
-        except PermissionError as e:
-            logging.error(f"PermissionError: {e}")
+    except Exception as e:
+        logging.error(
+            f"Exception occurred in prepare_files_for_download: {e}", exc_info=True
+        )
 
 
 @app.route("/download", methods=["GET"])
 def download_files():
-    zip_path = Path("processed_files.zip")
-    if not zip_path.exists():
-        logging.error("No processed files available for download.")
-        return jsonify({"message": "No processed files available for download."}), 400
+    try:
+        logging.info("Download files endpoint hit")
+        zip_path = Path("processed_files.zip")
+        if not zip_path.exists():
+            logging.error("No processed files available for download.")
+            return (
+                jsonify({"message": "No processed files available for download."}),
+                400,
+            )
 
-    logging.info("Processed files available for download.")
-    return send_file(zip_path, as_attachment=True, download_name="processed_files.zip")
+        logging.info("Processed files available for download.")
+        return send_file(
+            zip_path, as_attachment=True, download_name="processed_files.zip"
+        )
+    except Exception as e:
+        logging.error(f"Exception occurred in download_files: {e}", exc_info=True)
+        return jsonify({"message": "Internal server error"}), 500
 
 
 if __name__ == "__main__":
