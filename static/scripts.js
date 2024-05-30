@@ -48,7 +48,7 @@ $(document).ready(function () {
       url: "/clear_uploads",
       type: "GET",
       success: function (response) {
-        $("#statusMessage").text("Transcription in progress...");
+        $("#statusMessage").text("Preparing download Link...");
 
         // Simulate long process
         setTimeout(function () {
