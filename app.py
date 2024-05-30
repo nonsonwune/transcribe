@@ -37,24 +37,31 @@ def clear_uploads():
 
 @app.route("/", methods=["GET", "POST"])
 def upload_files():
-    if request.method == "POST":
-        if "files" not in request.files:
-            logging.error("No files part in request")
-            return jsonify({"message": "No files part"}), 400
-        files = request.files.getlist("files")
-        for file in files:
-            if file.filename == "":
-                logging.error("No selected file")
-                return jsonify({"message": "No selected file"}), 400
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file_path = uploads_dir / filename
-                file.save(file_path)
-                logging.info(f"Uploaded file: {filename}, saved to: {file_path}")
-        # Process files immediately after upload
-        process_files()
-        return jsonify({"message": "Files uploaded and processed successfully"}), 200
-    return render_template("upload_audio.html")
+    try:
+        if request.method == "POST":
+            if "files" not in request.files:
+                logging.error("No files part in request")
+                return jsonify({"message": "No files part"}), 400
+            files = request.files.getlist("files")
+            for file in files:
+                if file.filename == "":
+                    logging.error("No selected file")
+                    return jsonify({"message": "No selected file"}), 400
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = uploads_dir / filename
+                    file.save(file_path)
+                    logging.info(f"Uploaded file: {filename}, saved to: {file_path}")
+            # Process files immediately after upload
+            process_files()
+            return (
+                jsonify({"message": "Files uploaded and processed successfully"}),
+                200,
+            )
+        return render_template("upload_audio.html")
+    except Exception as e:
+        logging.error(f"Exception occurred: {e}", exc_info=True)
+        return jsonify({"message": "Internal server error"}), 500
 
 
 def process_files():
