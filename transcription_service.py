@@ -1,26 +1,12 @@
-# transcription_service.py
 import os
 import logging
 from pathlib import Path
-from pyannote.audio import Pipeline, Audio
-from pyannote.core import Segment
-import datetime
+from pyannote.audio import Pipeline
 import whisper
 from pydub import AudioSegment
-from dotenv import load_dotenv
-from multiprocessing import Pool
-import json
-import time
 import shutil
-from flask import (
-    Flask,
-    request,
-    send_from_directory,
-    send_file,
-    render_template,
-    redirect,
-    url_for,
-)
+import json
+import datetime
 
 
 class TranscriptionService:
@@ -38,11 +24,8 @@ class TranscriptionService:
             audio.export(wav_path, format="wav")
             logging.info(f"Converted {audio_path} to {wav_path}")
 
-            # Move the original file to the non_wave_files folder
             non_wave_files_dir = Path("non_wave_files")
-            non_wave_files_dir.mkdir(
-                parents=True, exist_ok=True
-            )  # Ensure the directory exists
+            non_wave_files_dir.mkdir(parents=True, exist_ok=True)
             shutil.move(audio_path, non_wave_files_dir / audio_path.name)
 
             return wav_path
@@ -50,25 +33,16 @@ class TranscriptionService:
 
     def transcribe_audio(self, audio_path):
         model = whisper.load_model("base")
-        audio_path_str = str(audio_path)
-        result = model.transcribe(audio_path_str, language="en")
+        result = model.transcribe(str(audio_path), language="en")
         logging.info(f"Transcribed {audio_path}")
         return result["text"], result["segments"]
 
     def perform_speaker_diarization(self, audio_path, segments):
         diarization = self.pipeline(audio_path)
-        labels = []
-        for segment, _, speaker in diarization.itertracks(yield_label=True):
-            labels.append(
-                {"start": segment.start, "end": segment.end, "label": speaker}
-            )
-
-        logging.info("Diarization results:")
-        for label in labels:
-            logging.info(
-                f"Start: {label['start']}, End: {label['end']}, Speaker: {label['label']}"
-            )
-
+        labels = [
+            {"start": segment.start, "end": segment.end, "label": speaker}
+            for segment, _, speaker in diarization.itertracks(yield_label=True)
+        ]
         for i, segment in enumerate(segments):
             max_overlap = 0
             best_match_label = "UNKNOWN"
@@ -87,9 +61,7 @@ class TranscriptionService:
     ):
         audio_name = Path(audio_path).stem
         transcription_dir = Path("transcriptions") / audio_name
-        transcription_dir.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure the directory exists
+        transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.txt"
 
         with open(file_name, "w") as f:
@@ -101,9 +73,7 @@ class TranscriptionService:
     def save_transcription_as_json(self, transcription, segments, audio_path):
         audio_name = Path(audio_path).stem
         transcription_dir = Path("transcriptions") / audio_name
-        transcription_dir.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure the directory exists
+        transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.json"
 
         segments_with_speakers = [
@@ -124,9 +94,7 @@ class TranscriptionService:
     def save_transcription_as_srt(self, transcription, segments, audio_path):
         audio_name = Path(audio_path).stem
         transcription_dir = Path("transcriptions") / audio_name
-        transcription_dir.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure the directory exists
+        transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.srt"
 
         with open(file_name, "w") as f:
@@ -142,9 +110,7 @@ class TranscriptionService:
     def save_transcription_as_vtt(self, transcription, segments, audio_path):
         audio_name = Path(audio_path).stem
         transcription_dir = Path("transcriptions") / audio_name
-        transcription_dir.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure the directory exists
+        transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.vtt"
 
         with open(file_name, "w") as f:
@@ -161,9 +127,7 @@ class TranscriptionService:
 
 def process_audio_file(service, audio_file):
     try:
-        logging.info(
-            f"Starting transcription for {audio_file}"
-        )  # Log at the start of processing
+        logging.info(f"Starting transcription for {audio_file}")
         audio_file = service.convert_to_wav(audio_file)
         logging.info(f"Audio file path: {audio_file}")
 

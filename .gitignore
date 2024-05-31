@@ -164,6 +164,7 @@ cython_debug/
 transcriptions/
 uploads/
 non_wave_files/
-.zip
+*.zip
 
 processed_files.zip
+flask_session/

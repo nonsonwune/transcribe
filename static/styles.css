@@ -18,7 +18,7 @@ body {
   min-height: 100vh;
 }
 
-/* Default styles for.main-container */
+/* Default styles for .main-container */
 .main-container {
   max-width: 800px;
   margin: auto;
@@ -30,14 +30,14 @@ body {
   transition: background-color 0.3s, color 0.2s, box-shadow 0.3s;
 }
 
-/* Dark mode styles for.main-container */
+/* Dark mode styles for .main-container */
 .dark-mode .main-container {
   background-color: #292929; /* Adjusted background color for dark mode */
   color: #ffffff; /* Adjusted text color for dark mode */
   box-shadow: 0 8px 32px rgba(255, 199, 199, 0.414); /* Adjusted shadow for dark mode */
 }
 
-/* Dark mode styles for specific text elements within.main-container */
+/* Dark mode styles for specific text elements within .main-container */
 .dark-mode .main-container h2,
 .dark-mode .main-container h3 {
   color: #ffffffb3; /* Adjusted text color for dark mode */

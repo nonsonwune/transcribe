@@ -3,7 +3,7 @@ env: flex
 
 env_variables:
   PYANNOTE_AUTH_TOKEN: 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
-
+  SECRET_KEY: 42e9e2483b4af92719ec4788a107bb70e53fac00386435e7982ecc984e87ae69
 resources:
   cpu: 1
   memory_gb: 4
