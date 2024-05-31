@@ -73,6 +73,11 @@ button.btn:hover {
   transform: scale(1.1);
 }
 
+button.btn:disabled {
+  background-color: #351f1f;
+  border-color: #351f1f;
+}
+
 .alert {
   border-radius: 4px;
   margin-top: 20px;
