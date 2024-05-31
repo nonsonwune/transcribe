@@ -25,6 +25,7 @@ $(document).ready(function () {
 
     $("#statusMessage").text("Transcribing Audio....").show();
     $("#transcribeButton").prop("disabled", true);
+    $(".lds-circle").show(); // Show the spinner
 
     $.ajax({
       url: "/",
@@ -39,6 +40,7 @@ $(document).ready(function () {
       error: function (response) {
         $("#statusMessage").text("Failed to upload files.");
         $("#transcribeButton").prop("disabled", false);
+        $(".lds-circle").hide(); // Hide the spinner on error
       },
     });
   });
@@ -60,10 +62,13 @@ $(document).ready(function () {
                 "Transcription complete. You can download the files now."
               );
               $("#downloadLink").show();
+              $(".lds-circle").hide(); // Hide the spinner on success
+              $("#transcribeButton").prop("disabled", false);
             },
             error: function () {
               $("#statusMessage").text("Failed to complete transcription.");
               $("#transcribeButton").prop("disabled", false);
+              $(".lds-circle").hide(); // Hide the spinner on error
             },
           });
         }, 5000);
@@ -71,6 +76,7 @@ $(document).ready(function () {
       error: function (response) {
         $("#statusMessage").text("Failed to clear uploads.");
         $("#transcribeButton").prop("disabled", false);
+        $(".lds-circle").hide(); // Hide the spinner on error
       },
     });
   }
