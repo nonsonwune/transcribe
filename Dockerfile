@@ -14,13 +14,14 @@ COPY requirements.txt .
 COPY . /app
 
 # Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Set environment variables
-ENV PYANNOTE_AUTH_TOKEN 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
+ENV PYANNOTE_AUTH_TOKEN=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
+ENV SECRET_KEY=42e9e2483b4af92719ec4788a107bb70e53fac00386435e7982ecc984e87ae69
 
 # Make port 8080 available to the world outside this container
 EXPOSE 8080
 
 # Run the application using Gunicorn
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8080", "--timeout", "600", "app:app"]
