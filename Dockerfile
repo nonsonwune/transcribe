@@ -10,15 +10,11 @@ WORKDIR /app
 # Copy requirements.txt early to leverage Docker cache
 COPY requirements.txt .
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-
 # Install the Python dependencies
 RUN pip install -r requirements.txt
 
-# Set environment variables
-ENV PYANNOTE_AUTH_TOKEN=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
-ENV SECRET_KEY=42e9e2483b4af92719ec4788a107bb70e53fac00386435e7982ecc984e87ae69
+# Copy the current directory contents into the container at /app
+COPY . /app
 
 # Make port 8080 available to the world outside this container
 EXPOSE 8080

@@ -168,3 +168,5 @@ non_wave_files/
 
 processed_files.zip
 flask_session/
+*.sh
+*.json

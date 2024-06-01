@@ -9,3 +9,5 @@ __pycache__/
 non_wave_files/
 transcriptions/
 uploads/
+*.sh
+*.json
