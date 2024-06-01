@@ -60,8 +60,11 @@ $(document).ready(function () {
           return;
         }
 
-        $("#statusMessage").text("Uploading...").show();
+        $("#statusMessage")
+          .text("Your audio recording is being transcribed, please wait....")
+          .show();
         $("#transcribeButton").prop("disabled", true);
+        $("#transcribeButton").text("Transcribing").show();
         $(".lds-circle").show(); // Show the spinner
 
         $.ajax({
@@ -80,6 +83,7 @@ $(document).ready(function () {
           error: function (response) {
             $("#statusMessage").text("Failed to upload files.");
             $("#transcribeButton").prop("disabled", false);
+            $("#transcribeButton").text("Transcribe").show();
             $(".lds-circle").hide(); // Hide the spinner on error
           },
         });
@@ -98,6 +102,7 @@ $(document).ready(function () {
         $("#downloadLink").show();
         $(".lds-circle").hide(); // Hide the spinner on success
         $("#transcribeButton").prop("disabled", false);
+        $("#transcribeButton").text("Transcribe").show();
       },
       error: function () {
         $("#statusMessage").text("Failed to complete transcription.");

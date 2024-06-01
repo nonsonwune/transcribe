@@ -37,7 +37,7 @@ body {
 
 .main-container {
   background-color: #fff;
-  padding: 20px;
+  padding: 50px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-width: 600px;
@@ -47,8 +47,8 @@ body {
 
 .dark-mode .main-container {
   background-color: #323232;
-  color: #e0e0e0;
-  box-shadow: 0 4px 12px rgba(81, 21, 21, 0.618);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.126);
 }
 
 .main-container h2 {
@@ -58,7 +58,7 @@ body {
 }
 
 .dark-mode .main-container h2 {
-  color: #dcb2b2;
+  color: #ffffff9e;
 }
 
 .form-group {
