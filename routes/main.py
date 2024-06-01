@@ -11,7 +11,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 from pathlib import Path
 from utils import allowed_file, clear_directory
-from file_processing import process_files, prepare_files_for_download
+from file_processing import process_files
 
 main_bp = Blueprint("main", __name__)
 
@@ -38,7 +38,7 @@ def check_status():
 @main_bp.route("/", methods=["GET", "POST"])
 def upload_files():
     try:
-        logging.info("Upload files endpoint hit")
+        logging.info("Home Page endpoint hit")
         if request.method == "POST":
             if session.get("transcription_in_progress"):
                 return (

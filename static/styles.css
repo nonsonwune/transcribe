@@ -1,95 +1,122 @@
-/* Import Google Font Poppins */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
 
 body {
   font-family: "Poppins", sans-serif;
   background-color: #f4f4f4;
-  transition: background-color 0.3s, color 0.2s;
+  color: #333;
+  transition: background-color 0.3s, color 0.3s;
+  margin: 0;
+  padding: 0;
 }
 
 .dark-mode {
-  background-color: rgb(43, 43, 43);
+  background-color: #222222;
+  color: #e0e0e0;
 }
 
-.flex-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-/* Default styles for .main-container */
-.main-container {
-  max-width: 800px;
-  margin: auto;
+.banner {
+  background-color: #520000;
+  color: #fff;
   padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.138);
-  background-color: #efeffb;
-  border-radius: 8px;
-  animation: fadeIn 1s ease-in-out;
-  transition: background-color 0.3s, color 0.2s, box-shadow 0.3s;
-}
-
-/* Dark mode styles for .main-container */
-.dark-mode .main-container {
-  background-color: #292929; /* Adjusted background color for dark mode */
-  color: #ffffff; /* Adjusted text color for dark mode */
-  box-shadow: 0 8px 32px rgba(255, 199, 199, 0.414); /* Adjusted shadow for dark mode */
-}
-
-/* Dark mode styles for specific text elements within .main-container */
-.dark-mode .main-container h2,
-.dark-mode .main-container h3 {
-  color: #ffffffb3; /* Adjusted text color for dark mode */
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-h2,
-h3 {
-  color: #1a1a1d;
   text-align: center;
 }
 
+.banner h1 {
+  margin: 0;
+  font-size: 2.5em;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 20px;
+}
+
+.main-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+.dark-mode .main-container {
+  background-color: #323232;
+  color: #e0e0e0;
+  box-shadow: 0 4px 12px rgba(81, 21, 21, 0.618);
+}
+
+.main-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #000000;
+}
+
+.dark-mode .main-container h2 {
+  color: #dcb2b2;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-control-file {
+  display: block;
+  width: 100%;
+}
+
 button.btn {
-  background-color: #1a1a1d;
-  border-color: #1a1a1d;
-  color: white;
-  padding: 12px 24px;
+  background-color: #000000;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 1em;
   transition: background-color 0.3s, transform 0.3s;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button.btn:hover {
   background-color: #520000;
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 button.btn:disabled {
-  background-color: #351f1f;
-  border-color: #351f1f;
+  background-color: #a0a0a0;
+  cursor: not-allowed;
 }
 
 .alert {
+  display: none;
+  padding: 10px;
   border-radius: 4px;
   margin-top: 20px;
-  display: none;
+}
+
+.alert-info {
+  background-color: #e7f3ff;
+  color: #0056b3;
+}
+
+.dark-mode .alert-info {
+  background-color: #333;
+  color: #66b2ff;
 }
 
 .toggle-switch {
-  display: flex;
-  align-items: center;
   position: absolute;
   top: 10px;
   right: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .toggle-switch input {
@@ -97,13 +124,12 @@ button.btn:disabled {
 }
 
 .toggle-switch label {
-  margin-left: 10px;
-  cursor: pointer;
   background-color: #ccc;
   border-radius: 15px;
   width: 40px;
   height: 20px;
   position: relative;
+  cursor: pointer;
   transition: background-color 0.3s;
 }
 
@@ -141,17 +167,19 @@ button.btn:disabled {
 }
 
 .social-icons img:hover {
-  transform: scale(1.618);
+  transform: scale(1.2);
 }
 
 .lds-circle,
 .lds-circle div {
   box-sizing: border-box;
 }
+
 .lds-circle {
   display: inline-block;
   transform: translateZ(1px);
 }
+
 .lds-circle > div {
   display: inline-block;
   width: 20px;
@@ -161,6 +189,7 @@ button.btn:disabled {
   border-radius: 50%;
   animation: lds-circle 2.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 }
+
 @keyframes lds-circle {
   0%,
   100% {
@@ -175,5 +204,14 @@ button.btn:disabled {
   }
   100% {
     transform: rotateY(3600deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

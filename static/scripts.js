@@ -50,6 +50,7 @@ $(document).ready(function () {
       formData.append("files", file);
     });
 
+    $("#statusMessage").text("Checking status...").show();
     $.ajax({
       url: "/check_status",
       type: "GET",
@@ -59,7 +60,7 @@ $(document).ready(function () {
           return;
         }
 
-        $("#statusMessage").text("Transcribing Audio....").show();
+        $("#statusMessage").text("Uploading...").show();
         $("#transcribeButton").prop("disabled", true);
         $(".lds-circle").show(); // Show the spinner
 
@@ -70,11 +71,10 @@ $(document).ready(function () {
           contentType: false,
           processData: false,
           success: function (response) {
-            $("#statusMessage").text(
-              "Files uploaded successfully. Preparing download link..."
-            );
+            $("#statusMessage").text("Transcribing...").show();
             sessionId = response.session_id;
             $("#sessionId").val(sessionId);
+            $("#statusMessage").text("Preparing download link...").show();
             downloadFiles(sessionId);
           },
           error: function (response) {
@@ -92,9 +92,9 @@ $(document).ready(function () {
       url: "/download?session_id=" + sessionId,
       type: "GET",
       success: function () {
-        $("#statusMessage").text(
-          "Transcription complete. You can download the files now."
-        );
+        $("#statusMessage")
+          .text("Transcription complete. You can download the files now.")
+          .show();
         $("#downloadLink").show();
         $(".lds-circle").hide(); // Hide the spinner on success
         $("#transcribeButton").prop("disabled", false);

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Audio Transcription Service</title>
+    <title>Nonso's Audio Transcriber</title>
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -14,13 +14,16 @@
     />
   </head>
   <body>
+    <div class="banner text-center py-3 bg-dark text-white">
+      <h1>Nonso's Audio Transcriber</h1>
+    </div>
     <div class="toggle-switch">
       <input type="checkbox" id="darkModeToggle" />
       <label for="darkModeToggle"></label>
     </div>
     <div class="container flex-container">
       <div class="main-container">
-        <h2>Upload and Transcribe Audio</h2>
+        <h2 class="text-center mb-4">Upload and Transcribe Audio</h2>
         <form id="uploadForm" enctype="multipart/form-data">
           <div class="form-group">
             <label for="audioFile">Select Audio File</label>
@@ -33,12 +36,21 @@
             />
           </div>
           <input type="hidden" id="sessionId" name="session_id" />
-          <button type="submit" class="btn btn-primary" id="transcribeButton">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="transcribeButton"
+            disabled
+          >
             Transcribe
-            <div class="lds-circle" style="display: none"><div></div></div>
           </button>
+          <div class="lds-circle" style="display: none"><div></div></div>
         </form>
-        <div class="alert alert-info mt-3" id="statusMessage"></div>
+        <div
+          class="alert alert-info mt-3"
+          id="statusMessage"
+          style="display: none"
+        ></div>
         <a
           id="downloadLink"
           href="#"
@@ -46,7 +58,7 @@
           style="display: none"
           >Download Transcribed Files</a
         >
-        <div class="social-icons">
+        <div class="social-icons mt-4 text-center">
           <a href="https://www.linkedin.com/in/cnonsonwune/" target="_blank"
             ><img
               src="{{ url_for('static', filename='icons/linkedin-icon.png') }}"

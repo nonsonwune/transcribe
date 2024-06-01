@@ -10,8 +10,9 @@ import datetime
 
 
 class TranscriptionService:
-    def __init__(self, auth_token):
+    def __init__(self, auth_token, session_id):
         self.auth_token = auth_token
+        self.session_id = session_id
         self.pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1", use_auth_token=self.auth_token
         )
@@ -24,7 +25,7 @@ class TranscriptionService:
             audio.export(wav_path, format="wav")
             logging.info(f"Converted {audio_path} to {wav_path}")
 
-            non_wave_files_dir = Path("non_wave_files")
+            non_wave_files_dir = Path("non_wave_files") / self.session_id
             non_wave_files_dir.mkdir(parents=True, exist_ok=True)
             shutil.move(audio_path, non_wave_files_dir / audio_path.name)
 
@@ -60,7 +61,7 @@ class TranscriptionService:
         self, transcription, segments, audio_path
     ):
         audio_name = Path(audio_path).stem
-        transcription_dir = Path("transcriptions") / audio_name
+        transcription_dir = Path("transcriptions") / self.session_id / audio_name
         transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.txt"
 
@@ -72,7 +73,7 @@ class TranscriptionService:
 
     def save_transcription_as_json(self, transcription, segments, audio_path):
         audio_name = Path(audio_path).stem
-        transcription_dir = Path("transcriptions") / audio_name
+        transcription_dir = Path("transcriptions") / self.session_id / audio_name
         transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.json"
 
@@ -93,7 +94,7 @@ class TranscriptionService:
 
     def save_transcription_as_srt(self, transcription, segments, audio_path):
         audio_name = Path(audio_path).stem
-        transcription_dir = Path("transcriptions") / audio_name
+        transcription_dir = Path("transcriptions") / self.session_id / audio_name
         transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.srt"
 
@@ -109,7 +110,7 @@ class TranscriptionService:
 
     def save_transcription_as_vtt(self, transcription, segments, audio_path):
         audio_name = Path(audio_path).stem
-        transcription_dir = Path("transcriptions") / audio_name
+        transcription_dir = Path("transcriptions") / self.session_id / audio_name
         transcription_dir.mkdir(parents=True, exist_ok=True)
         file_name = transcription_dir / f"{audio_name}_transcription_with_speakers.vtt"
 
