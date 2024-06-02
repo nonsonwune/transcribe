@@ -1,4 +1,5 @@
 import logging
+import uuid
 from flask import (
     Blueprint,
     request,
@@ -51,8 +52,13 @@ def upload_files():
                 return jsonify({"message": "No files part"}), 400
 
             files = request.files.getlist("files")
-            session_id = session.sid
+
+            # Generate a unique session ID if it doesn't exist
+            if "session_id" not in session:
+                session["session_id"] = str(uuid.uuid4())
+            session_id = session["session_id"]
             logging.info(f"Session ID: {session_id}")
+
             session_uploads_dir = Path(current_app.config["UPLOADS_DIR"]) / session_id
             session_transcriptions_dir = (
                 Path(current_app.config["TRANSCRIPTIONS_DIR"]) / session_id
@@ -60,6 +66,14 @@ def upload_files():
             session_non_wave_files_dir = (
                 Path(current_app.config["NON_WAVE_FILES_DIR"]) / session_id
             )
+
+            # Clear previous session directories
+            if session_uploads_dir.exists():
+                clear_directory(session_uploads_dir)
+            if session_transcriptions_dir.exists():
+                clear_directory(session_transcriptions_dir)
+            if session_non_wave_files_dir.exists():
+                clear_directory(session_non_wave_files_dir)
 
             session_uploads_dir.mkdir(exist_ok=True)
             session_transcriptions_dir.mkdir(exist_ok=True)
@@ -101,7 +115,10 @@ def upload_files():
         return render_template("upload_audio.html")
     except Exception as e:
         logging.error(f"Exception occurred in upload_files: {e}", exc_info=True)
-        session_id = session.sid
+        if "session_id" in session:
+            session_id = session["session_id"]
+        else:
+            session_id = "unknown"
         session.pop("transcription_in_progress", None)
         session.modified = True
         return jsonify({"message": "Internal server error"}), 500
@@ -138,11 +155,12 @@ def download_files():
 def cleanup():
     try:
         logging.info("Cleanup endpoint hit")
-        session_id = session.sid
-        logging.info(f"Session ID for cleanup: {session_id}")
-        clear_directory(Path(current_app.config["UPLOADS_DIR"]) / session_id)
-        clear_directory(Path(current_app.config["TRANSCRIPTIONS_DIR"]) / session_id)
-        clear_directory(Path(current_app.config["NON_WAVE_FILES_DIR"]) / session_id)
+        if "session_id" in session:
+            session_id = session["session_id"]
+            logging.info(f"Session ID for cleanup: {session_id}")
+            clear_directory(Path(current_app.config["UPLOADS_DIR"]) / session_id)
+            clear_directory(Path(current_app.config["TRANSCRIPTIONS_DIR"]) / session_id)
+            clear_directory(Path(current_app.config["NON_WAVE_FILES_DIR"]) / session_id)
         return jsonify({"message": "Cleanup successful"}), 200
     except Exception as e:
         logging.error(f"Exception occurred in cleanup: {e}", exc_info=True)

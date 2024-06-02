@@ -6,7 +6,7 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
-    SESSION_TYPE = "filesystem"
+    SESSION_TYPE = "client"  # Changed from "filesystem" to "client"
     UPLOADS_DIR = "uploads"
     TRANSCRIPTIONS_DIR = "transcriptions"
     NON_WAVE_FILES_DIR = "non_wave_files"

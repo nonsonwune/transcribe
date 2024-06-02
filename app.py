@@ -1,5 +1,4 @@
 from flask import Flask, session
-from flask_session import Session
 from config import Config
 from routes import main_bp
 import logging
@@ -14,9 +13,6 @@ logging.basicConfig(
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-
-    # Setup session management
-    Session(app)
 
     # Ensure necessary directories exist
     with app.app_context():

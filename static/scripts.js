@@ -1,36 +1,51 @@
+// Utility functions for cookies
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(";");
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == " ") c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+function deleteCookie(name) {
+  document.cookie = name + "=; Max-Age=-99999999; path=/";
+}
+
 $(document).ready(function () {
-  // Check the session for dark mode preference
-  $.ajax({
-    url: "/get_dark_mode",
-    type: "GET",
-    success: function (response) {
-      if (response.dark_mode === "true") {
-        $("#darkModeToggle").prop("checked", true);
-        $("body").addClass("dark-mode");
-      } else {
-        $("#darkModeToggle").prop("checked", false);
-        $("body").removeClass("dark-mode");
-      }
-    },
-  });
+  var darkMode = getCookie("dark_mode");
+  if (darkMode === "true") {
+    $("#darkModeToggle").prop("checked", true);
+    $("body").addClass("dark-mode");
+  } else {
+    $("#darkModeToggle").prop("checked", false);
+    $("body").removeClass("dark-mode");
+  }
 
   $("#darkModeToggle").on("change", function () {
-    $.ajax({
-      url: "/set_dark_mode",
-      type: "POST",
-      data: { dark_mode: $(this).is(":checked") ? "true" : "false" },
-      success: function (response) {
-        if (response.dark_mode === "true") {
-          $("body").addClass("dark-mode");
-        } else {
-          $("body").removeClass("dark-mode");
-        }
-      },
-    });
+    var darkModeValue = $(this).is(":checked") ? "true" : "false";
+    setCookie("dark_mode", darkModeValue, 7);
+    if (darkModeValue === "true") {
+      $("body").addClass("dark-mode");
+    } else {
+      $("body").removeClass("dark-mode");
+    }
   });
 
   let files;
-  let sessionId;
+  let sessionId = getCookie("session_id");
 
   $("#audioFile").on("change", function () {
     files = this.files;
@@ -44,6 +59,9 @@ $(document).ready(function () {
       alert("Please select a file first.");
       return;
     }
+
+    // Clear previous session data
+    deleteCookie("session_id");
 
     let formData = new FormData();
     $.each(files, function (i, file) {
@@ -76,6 +94,7 @@ $(document).ready(function () {
           success: function (response) {
             $("#statusMessage").text("Transcribing...").show();
             sessionId = response.session_id;
+            setCookie("session_id", sessionId, 1); // Set session ID in cookie for 1 day
             $("#sessionId").val(sessionId);
             $("#statusMessage").text("Preparing download link...").show();
             downloadFiles(sessionId);

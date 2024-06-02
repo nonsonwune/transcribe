@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import shutil
 
 
 def setup_directories(app):
@@ -9,10 +10,9 @@ def setup_directories(app):
 
 
 def clear_directory(directory):
-    for file in Path(directory).iterdir():
-        file.unlink()
-    Path(directory).rmdir()
-    logging.info(f"Directory {directory} cleared")
+    if Path(directory).exists():
+        shutil.rmtree(directory)
+        logging.info(f"Directory {directory} cleared")
 
 
 def allowed_file(filename):
