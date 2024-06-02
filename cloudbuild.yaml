@@ -14,5 +14,7 @@ steps:
         gcloud config set project nonso-transcriber
         gcloud app deploy --image-url=gcr.io/nonso-transcriber/app-with-ffmpeg --verbosity=debug --quiet
 
+timeout: "1800s" # Increase to 30 minutes or more as needed
+
 images:
   - "gcr.io/nonso-transcriber/app-with-ffmpeg"

@@ -11,8 +11,8 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 from pathlib import Path
-from utils import allowed_file, clear_directory
 from file_processing import process_files
+from utils import allowed_file, clear_directory, upload_to_gcs, download_from_gcs
 
 main_bp = Blueprint("main", __name__)
 
@@ -53,7 +53,6 @@ def upload_files():
 
             files = request.files.getlist("files")
 
-            # Generate a unique session ID if it doesn't exist
             if "session_id" not in session:
                 session["session_id"] = str(uuid.uuid4())
             session_id = session["session_id"]
@@ -75,9 +74,9 @@ def upload_files():
             if session_non_wave_files_dir.exists():
                 clear_directory(session_non_wave_files_dir)
 
-            session_uploads_dir.mkdir(exist_ok=True)
-            session_transcriptions_dir.mkdir(exist_ok=True)
-            session_non_wave_files_dir.mkdir(exist_ok=True)
+            session_uploads_dir.mkdir(parents=True, exist_ok=True)
+            session_transcriptions_dir.mkdir(parents=True, exist_ok=True)
+            session_non_wave_files_dir.mkdir(parents=True, exist_ok=True)
 
             for file in files:
                 if file.filename == "":
@@ -85,9 +84,18 @@ def upload_files():
                     return jsonify({"message": "No selected file"}), 400
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    file_path = session_uploads_dir / filename
-                    file.save(file_path)
-                    logging.info(f"Uploaded file: {filename}, saved to: {file_path}")
+                    local_file_path = session_uploads_dir / filename
+                    file.save(local_file_path)
+                    logging.info(
+                        f"Uploaded file: {filename}, saved to: {local_file_path}"
+                    )
+
+                    # Upload to GCS
+                    upload_to_gcs(
+                        current_app.config["GCS_BUCKET_NAME"],
+                        local_file_path,
+                        f"{session_id}/{filename}",
+                    )
 
             session["transcription_in_progress"] = True
             session.modified = True
@@ -115,10 +123,6 @@ def upload_files():
         return render_template("upload_audio.html")
     except Exception as e:
         logging.error(f"Exception occurred in upload_files: {e}", exc_info=True)
-        if "session_id" in session:
-            session_id = session["session_id"]
-        else:
-            session_id = "unknown"
         session.pop("transcription_in_progress", None)
         session.modified = True
         return jsonify({"message": "Internal server error"}), 500
@@ -129,23 +133,16 @@ def download_files():
     try:
         logging.info("Download files endpoint hit")
         session_id = request.args.get("session_id")
-        logging.info(f"Session ID for download: {session_id}")
-        zip_path = Path(f"processed_files_{session_id}.zip")
-        if not zip_path.exists():
-            logging.error(f"No processed files available for download at {zip_path}")
-            return (
-                jsonify({"message": "No processed files available for download."}),
-                400,
+        zip_filename = f"processed_files_{session_id}.zip"
+        local_zip_path = Path(zip_filename)
+
+        if not local_zip_path.exists():
+            logging.info(f"Downloading {zip_filename} from GCS")
+            download_from_gcs(
+                current_app.config["GCS_BUCKET_NAME"], zip_filename, local_zip_path
             )
 
-        logging.info(f"Processed files available for download at {zip_path}")
-        response = send_file(
-            zip_path,
-            as_attachment=True,
-            download_name=f"processed_files_{session_id}.zip",
-        )
-
-        return response
+        return send_file(local_zip_path, as_attachment=True, download_name=zip_filename)
     except Exception as e:
         logging.error(f"Exception occurred in download_files: {e}", exc_info=True)
         return jsonify({"message": "Internal server error"}), 500
