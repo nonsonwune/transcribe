@@ -92,12 +92,19 @@ $(document).ready(function () {
           contentType: false,
           processData: false,
           success: function (response) {
-            $("#statusMessage").text("Transcribing...").show();
-            sessionId = response.session_id;
-            setCookie("session_id", sessionId, 1); // Set session ID in cookie for 1 day
-            $("#sessionId").val(sessionId);
-            $("#statusMessage").text("Preparing download link...").show();
-            downloadFiles(sessionId);
+            if (response.session_id) {
+              $("#statusMessage").text("Transcribing...").show();
+              sessionId = response.session_id;
+              setCookie("session_id", sessionId, 1); // Set session ID in cookie for 1 day
+              $("#sessionId").val(sessionId);
+              $("#statusMessage").text("Preparing download link...").show();
+              downloadFiles(sessionId);
+            } else {
+              $("#statusMessage").text("Failed to upload files.");
+              $("#transcribeButton").prop("disabled", false);
+              $("#transcribeButton").text("Transcribe").show();
+              $(".lds-circle").hide(); // Hide the spinner on error
+            }
           },
           error: function (response) {
             $("#statusMessage").text("Failed to upload files.");
@@ -106,6 +113,12 @@ $(document).ready(function () {
             $(".lds-circle").hide(); // Hide the spinner on error
           },
         });
+      },
+      error: function () {
+        $("#statusMessage").text("Failed to check status.");
+        $("#transcribeButton").prop("disabled", false);
+        $("#transcribeButton").text("Transcribe").show();
+        $(".lds-circle").hide(); // Hide the spinner on error
       },
     });
   });

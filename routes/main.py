@@ -100,12 +100,18 @@ def upload_files():
             session["transcription_in_progress"] = True
             session.modified = True
 
-            process_files(
-                session_uploads_dir,
-                session_transcriptions_dir,
-                session_non_wave_files_dir,
-                session_id,
-            )
+            try:
+                process_files(
+                    session_uploads_dir,
+                    session_transcriptions_dir,
+                    session_non_wave_files_dir,
+                    session_id,
+                )
+            except Exception as e:
+                logging.error(f"Error during file processing: {e}", exc_info=True)
+                session.pop("transcription_in_progress", None)
+                session.modified = True
+                return jsonify({"message": "Error during file processing"}), 500
 
             session.pop("transcription_in_progress", None)
             session.modified = True

@@ -2,9 +2,11 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/nonso-transcriber/app-with-ffmpeg", "."]
     dir: "."
+    timeout: "1800s" # Use quotes around the timeout value
 
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/nonso-transcriber/app-with-ffmpeg"]
+    timeout: "1800s" # Use quotes around the timeout value
 
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
@@ -13,8 +15,7 @@ steps:
       - |
         gcloud config set project nonso-transcriber
         gcloud app deploy --image-url=gcr.io/nonso-transcriber/app-with-ffmpeg --verbosity=debug --quiet
-
-timeout: "1800s" # Increase to 30 minutes or more as needed
+    timeout: "1800s" # Use quotes around the timeout value
 
 images:
   - "gcr.io/nonso-transcriber/app-with-ffmpeg"

@@ -7,7 +7,7 @@ env_variables:
   GCS_BUCKET_NAME: nonso-transcriber.appspot.com
 resources:
   cpu: 1
-  memory_gb: 4
+  memory_gb: 8
   disk_size_gb: 30
 
 automatic_scaling:

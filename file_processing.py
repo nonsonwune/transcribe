@@ -16,7 +16,7 @@ def process_files(upload_dir, transcriptions_dir, non_wave_files_dir, session_id
             logging.error("PYANNOTE_AUTH_TOKEN environment variable is not set.")
             return
 
-        service = TranscriptionService(auth_token, session_id)
+        service = TranscriptionService(auth_token, session_id)  # Initialize once
 
         audio_files = list(Path(upload_dir).iterdir())
         if not audio_files:
@@ -36,7 +36,6 @@ def process_files(upload_dir, transcriptions_dir, non_wave_files_dir, session_id
 
         # Clear the uploads directory after processing
         clear_directory(upload_dir)
-
     except Exception as e:
         logging.error(f"Exception occurred in process_files: {e}", exc_info=True)
 
