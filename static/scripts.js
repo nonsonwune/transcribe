@@ -70,11 +70,13 @@ $(document).ready(function () {
 
     $("#statusMessage").text("Checking status...").show();
     $.ajax({
-      url: "/check_status",
+      url: "/check_transcription_status",
+      data: { session_id: sessionId },
       type: "GET",
       success: function (response) {
         if (response.transcription_in_progress) {
           alert("A transcription is already in progress.");
+          $("#statusMessage").hide();
           return;
         }
 
@@ -82,7 +84,7 @@ $(document).ready(function () {
           .text("Your audio recording is being transcribed, please wait....")
           .show();
         $("#transcribeButton").prop("disabled", true);
-        $("#transcribeButton").text("Transcribing").show();
+        $("#transcribeButton").text("Transcribing");
         $(".lds-circle").show(); // Show the spinner
 
         $.ajax({
@@ -98,18 +100,18 @@ $(document).ready(function () {
               setCookie("session_id", sessionId, 1); // Set session ID in cookie for 1 day
               $("#sessionId").val(sessionId);
               $("#statusMessage").text("Preparing download link...").show();
-              downloadFiles(sessionId);
+              checkTranscriptionStatus(sessionId);
             } else {
               $("#statusMessage").text("Failed to upload files.");
               $("#transcribeButton").prop("disabled", false);
-              $("#transcribeButton").text("Transcribe").show();
+              $("#transcribeButton").text("Transcribe");
               $(".lds-circle").hide(); // Hide the spinner on error
             }
           },
           error: function (response) {
             $("#statusMessage").text("Failed to upload files.");
             $("#transcribeButton").prop("disabled", false);
-            $("#transcribeButton").text("Transcribe").show();
+            $("#transcribeButton").text("Transcribe");
             $(".lds-circle").hide(); // Hide the spinner on error
           },
         });
@@ -117,31 +119,42 @@ $(document).ready(function () {
       error: function () {
         $("#statusMessage").text("Failed to check status.");
         $("#transcribeButton").prop("disabled", false);
-        $("#transcribeButton").text("Transcribe").show();
+        $("#transcribeButton").text("Transcribe");
         $(".lds-circle").hide(); // Hide the spinner on error
       },
     });
   });
 
-  function downloadFiles(sessionId) {
-    $.ajax({
-      url: "/download?session_id=" + sessionId,
-      type: "GET",
-      success: function () {
-        $("#statusMessage")
-          .text("Transcription complete. You can download the files now.")
-          .show();
-        $("#downloadLink").show();
-        $(".lds-circle").hide(); // Hide the spinner on success
-        $("#transcribeButton").prop("disabled", false);
-        $("#transcribeButton").text("Transcribe").show();
-      },
-      error: function () {
-        $("#statusMessage").text("Failed to complete transcription.");
-        $("#transcribeButton").prop("disabled", false);
-        $(".lds-circle").hide(); // Hide the spinner on error
-      },
-    });
+  function checkTranscriptionStatus(sessionId) {
+    let intervalId = setInterval(function () {
+      $.ajax({
+        url: "/check_transcription_status?session_id=" + sessionId,
+        type: "GET",
+        success: function (response) {
+          if (response.status === "completed") {
+            clearInterval(intervalId);
+            $("#statusMessage")
+              .text("Transcription complete. You can download the files now.")
+              .show();
+            $("#downloadLink").show();
+            $(".lds-circle").hide(); // Hide the spinner on success
+            $("#transcribeButton").prop("disabled", false);
+            $("#transcribeButton").text("Transcribe");
+          } else if (response.status === "failed") {
+            clearInterval(intervalId);
+            $("#statusMessage").text("Failed to complete transcription.");
+            $("#transcribeButton").prop("disabled", false);
+            $(".lds-circle").hide(); // Hide the spinner on error
+          }
+        },
+        error: function () {
+          clearInterval(intervalId);
+          $("#statusMessage").text("Failed to check transcription status.");
+          $("#transcribeButton").prop("disabled", false);
+          $(".lds-circle").hide(); // Hide the spinner on error
+        },
+      });
+    }, 5000); // Check every 5 seconds
   }
 
   window.onbeforeunload = function () {

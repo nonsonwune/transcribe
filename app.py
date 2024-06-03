@@ -1,7 +1,8 @@
+import logging
 from flask import Flask, session
 from config import Config
 from routes import main_bp
-import logging
+from celery_app import celery, create_app_with_celery
 from utils import setup_directories
 
 # Setup logging
@@ -11,7 +12,9 @@ logging.basicConfig(
 
 
 def create_app():
-    app = Flask(__name__)
+    app, _ = (
+        create_app_with_celery()
+    )  # Use create_app_with_celery instead of create_flask_app
     app.config.from_object(Config)
 
     # Ensure necessary directories exist
@@ -28,9 +31,7 @@ def create_app():
     return app
 
 
-# for gunicorn
 app = create_app()
 
 if __name__ == "__main__":
-    app = create_app()
     app.run(debug=True, use_reloader=False)

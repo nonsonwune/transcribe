@@ -5,6 +5,8 @@ env_variables:
   PYANNOTE_AUTH_TOKEN: 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
   SECRET_KEY: 42e9e2483b4af92719ec4788a107bb70e53fac00386435e7982ecc984e87ae69
   GCS_BUCKET_NAME: nonso-transcriber.appspot.com
+  CELERY_BROKER_URL: redis://localhost:6379/0
+  CELERY_RESULT_BACKEND: redis://localhost:6379/0
 
 resources:
   cpu: 2

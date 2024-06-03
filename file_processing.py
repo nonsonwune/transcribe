@@ -1,48 +1,74 @@
 import os
 import logging
 from pathlib import Path
-from multiprocessing import Pool
-from transcription_service import TranscriptionService, process_audio_file_wrapper
 import zipfile
 from flask import current_app
 from utils import upload_to_gcs, clear_directory
-from utils_memory import log_memory_usage  # Import log_memory_usage from utils_memory
+from utils_memory import log_memory_usage
+import whisper
+import shutil
 
 
 def process_files(upload_dir, transcriptions_dir, non_wave_files_dir, session_id):
-    try:
-        logging.info("Starting file processing")
-        auth_token = os.getenv("PYANNOTE_AUTH_TOKEN")
-        if not auth_token:
-            logging.error("PYANNOTE_AUTH_TOKEN environment variable is not set.")
-            return
+    logging.info(f"Starting file processing for session ID: {session_id}")
 
-        audio_files = list(Path(upload_dir).iterdir())
-        if not audio_files:
-            logging.error("No audio files found in uploads directory.")
-            return
+    upload_dir_path = Path(upload_dir)
+    transcriptions_dir_path = Path(transcriptions_dir)
+    non_wave_files_dir_path = Path(non_wave_files_dir)
 
-        logging.info(f"Found {len(audio_files)} audio files to process.")
+    # Clear previous session directories
+    clear_directory(transcriptions_dir_path)
+    clear_directory(non_wave_files_dir_path)
 
-        log_memory_usage()  # Log memory usage before processing
+    # List all audio files in the upload directory
+    audio_filenames = [
+        f
+        for f in os.listdir(upload_dir_path)
+        if f.endswith((".wav", ".mp3", ".m4a", ".mp4"))
+    ]
+    logging.info(
+        f"Found {len(audio_filenames)} audio files to process for session ID: {session_id}"
+    )
 
-        with Pool(processes=4) as pool:
-            pool.map(
-                process_audio_file_wrapper,
-                [(auth_token, session_id, audio_file) for audio_file in audio_files],
+    # Initialize whisper model
+    model = whisper.load_model("base")
+    logging.info("Whisper model loaded successfully")
+
+    transcription_paths = []
+
+    for filename in audio_filenames:
+        audio_filepath = upload_dir_path / filename
+        audio_filename_stem = Path(filename).stem
+
+        # Run transcription
+        transcription = model.transcribe(str(audio_filepath))
+
+        # Create directory for this audio file's transcription
+        transcription_dir = transcriptions_dir_path / audio_filename_stem
+        transcription_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save transcription files
+        for extension, content in zip(
+            ["txt", "json", "srt", "vtt"], transcription.values()
+        ):
+            transcription_filepath = (
+                transcription_dir
+                / f"{audio_filename_stem}_transcription_with_speakers.{extension}"
             )
+            with open(transcription_filepath, "w", encoding="utf-8") as f:
+                if isinstance(content, list):
+                    for item in content:
+                        f.write(str(item))
+                else:
+                    f.write(str(content))
+            logging.info(f"Saved transcription file: {transcription_filepath}")
 
-        logging.info("Processing complete. Preparing files for download.")
-        prepare_files_for_download(transcriptions_dir, session_id)
+    logging.info(
+        f"Processing complete for session ID: {session_id}. Preparing files for download."
+    )
+    prepare_files_for_download(transcriptions_dir_path, session_id)
 
-        # Clear the uploads directory after processing
-        clear_directory(upload_dir)
-
-        log_memory_usage()  # Log memory usage after processing
-
-    except Exception as e:
-        logging.error(f"Exception occurred in process_files: {e}", exc_info=True)
-        log_memory_usage()  # Log memory usage in case of error
+    return transcription_paths
 
 
 def prepare_files_for_download(transcriptions_dir, session_id):
@@ -51,6 +77,11 @@ def prepare_files_for_download(transcriptions_dir, session_id):
         zip_path = Path(f"processed_files_{session_id}.zip")
         if zip_path.exists():
             zip_path.unlink()
+
+        # Log directory contents before zipping
+        for root, dirs, files in os.walk(transcriptions_dir):
+            for file in files:
+                logging.info(f"File in transcriptions directory: {Path(root) / file}")
 
         with zipfile.ZipFile(zip_path, "w") as zipf:
             for root, dirs, files in os.walk(transcriptions_dir):
@@ -64,5 +95,6 @@ def prepare_files_for_download(transcriptions_dir, session_id):
         upload_to_gcs(current_app.config["GCS_BUCKET_NAME"], zip_path, zip_path.name)
     except Exception as e:
         logging.error(
-            f"Exception occurred in prepare_files_for_download: {e}", exc_info=True
+            f"Exception occurred in prepare_files_for_download for session ID: {session_id}: {e}",
+            exc_info=True,
         )

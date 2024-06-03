@@ -12,3 +12,5 @@ class Config:
     NON_WAVE_FILES_DIR = "non_wave_files"
     PYANNOTE_AUTH_TOKEN = os.getenv("PYANNOTE_AUTH_TOKEN")
     GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
