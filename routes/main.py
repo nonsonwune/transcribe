@@ -17,6 +17,7 @@ from tasks import transcribe_audio_files
 import redis
 import zipfile
 import os
+import shutil
 import tempfile
 
 main_bp = Blueprint("main", __name__)
