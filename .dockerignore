@@ -1,0 +1,30 @@
+# Ignore Python cache files
+__pycache__
+*.pyc
+*.pyo
+
+# Ignore virtual environment directories
+venv
+env
+
+# Ignore local development files
+.DS_Store
+*.swp
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore node_modules if you have a Node.js project
+node_modules
+
+transcriptions/
+uploads/
+non_wave_files/
+*.zip
+
+processed_files.zip
+flask_session/
+*.sh
+*.json
+condition.yaml

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nonso's Audio Transcriber</title>
+    <title>Nonso's Transcriber</title>
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -11,6 +11,11 @@
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='favicon.ico') }}"
+      type="image/x-icon"
     />
   </head>
   <body>
@@ -32,6 +37,7 @@
               class="form-control-file"
               id="audioFile"
               name="files"
+              accept=".mp3, .m4a, .wav, .mp4"
               multiple
             />
           </div>

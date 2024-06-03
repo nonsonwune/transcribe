@@ -11,3 +11,14 @@ transcriptions/
 uploads/
 *.sh
 *.json
+
+transcriptions/
+uploads/
+non_wave_files/
+*.zip
+
+processed_files.zip
+flask_session/
+*.sh
+*.json
+condition.yaml

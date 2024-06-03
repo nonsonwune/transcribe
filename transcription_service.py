@@ -7,22 +7,20 @@ from pydub import AudioSegment
 import shutil
 import json
 import datetime
+from utils_memory import log_memory_usage  # Import log_memory_usage from utils_memory
 
 
 class TranscriptionService:
     def __init__(self, auth_token, session_id):
         self.auth_token = auth_token
         self.session_id = session_id
-        self.diarization_pipeline = self.load_diarization_pipeline()  # Load once
-        self.whisper_model = self.load_whisper_model()  # Load once
-
-    def load_diarization_pipeline(self):
-        return Pipeline.from_pretrained(
+        self.pipeline = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1", use_auth_token=self.auth_token
         )
+        logging.info("Speaker diarization pipeline loaded successfully")
 
-    def load_whisper_model(self):
-        return whisper.load_model("base")
+        self.model = whisper.load_model("base")
+        logging.info("Whisper model loaded successfully")
 
     def convert_to_wav(self, audio_path):
         audio_path = Path(audio_path)
@@ -40,12 +38,15 @@ class TranscriptionService:
         return audio_path
 
     def transcribe_audio(self, audio_path):
-        result = self.whisper_model.transcribe(str(audio_path), language="en")
+        logging.info(f"Whisper model state in transcribe_audio: {self.model}")
+        if self.model is None:
+            raise ValueError("Whisper model is not loaded")
+        result = self.model.transcribe(str(audio_path), language="en")
         logging.info(f"Transcribed {audio_path}")
         return result["text"], result["segments"]
 
     def perform_speaker_diarization(self, audio_path, segments):
-        diarization = self.diarization_pipeline(audio_path)
+        diarization = self.pipeline(audio_path)
         labels = [
             {"start": segment.start, "end": segment.end, "label": speaker}
             for segment, _, speaker in diarization.itertracks(yield_label=True)
@@ -153,8 +154,10 @@ def process_audio_file(service, audio_file):
         logging.info(f"Processed {audio_file}")
     except Exception as e:
         logging.error(f"An error occurred processing {audio_file}: {e}")
+        log_memory_usage()  # Log memory usage in case of error
 
 
 def process_audio_file_wrapper(args):
-    service, audio_file = args
+    auth_token, session_id, audio_file = args
+    service = TranscriptionService(auth_token, session_id)
     process_audio_file(service, audio_file)

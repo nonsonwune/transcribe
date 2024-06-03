@@ -4,14 +4,17 @@ FROM python:3.10-slim-buster
 # Install ffmpeg
 RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
+# Upgrade pip to the latest version
+RUN pip install --upgrade pip
+
 # Set the working directory
 WORKDIR /app
 
 # Copy requirements.txt early to leverage Docker cache
 COPY requirements.txt .
 
-# Install the Python dependencies
-RUN pip install -r requirements.txt
+# Install the Python dependencies with increased timeout and retries
+RUN pip install --default-timeout=100 --retries=10 -r requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY . /app
