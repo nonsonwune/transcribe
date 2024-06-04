@@ -8,6 +8,12 @@ from utils import upload_to_gcs, clear_directory
 from flask import current_app
 import os
 
+# Create a dummy app context for standalone script execution
+from flask import Flask
+
+app = Flask(__name__)
+app.config.from_object("config.Config")
+
 
 @celery.task
 def process_files_task(upload_dir, transcriptions_dir, non_wave_files_dir, session_id):
@@ -40,7 +46,8 @@ def process_files_task(upload_dir, transcriptions_dir, non_wave_files_dir, sessi
                 future.result()
 
         logging.info("Processing complete. Preparing files for download.")
-        prepare_files_for_download(transcriptions_dir, session_id)
+        with app.app_context():
+            prepare_files_for_download(transcriptions_dir, session_id)
 
         clear_directory(upload_dir)
 
@@ -64,10 +71,7 @@ def prepare_files_for_download(transcriptions_dir, session_id):
                     zipf.write(file_path, arcname)
 
         logging.info(f"Processed files zipped and ready for download at {zip_path}")
-        with current_app.app_context():
-            upload_to_gcs(
-                current_app.config["GCS_BUCKET_NAME"], zip_path, zip_path.name
-            )
+        upload_to_gcs(current_app.config["GCS_BUCKET_NAME"], zip_path, zip_path.name)
     except Exception as e:
         logging.error(
             f"Exception occurred in prepare_files_for_download: {e}", exc_info=True
@@ -76,6 +80,10 @@ def prepare_files_for_download(transcriptions_dir, session_id):
 
 @celery.task
 def transcription_complete(session_id, **kwargs):
-    with current_app.app_context():
+    with app.app_context():
+        session = celery.flask_app.extensions["flask-session"].open_session(
+            celery.flask_app, request
+        )
         session["transcription_in_progress"] = False
         session.modified = True
+        session.save()

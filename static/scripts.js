@@ -1,8 +1,8 @@
 // Utility functions for cookies
 function setCookie(name, value, days) {
-  var expires = "";
+  let expires = "";
   if (days) {
-    var date = new Date();
+    const date = new Date();
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     expires = "; expires=" + date.toUTCString();
   }
@@ -10,10 +10,10 @@ function setCookie(name, value, days) {
 }
 
 function getCookie(name) {
-  var nameEQ = name + "=";
-  var ca = document.cookie.split(";");
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
     while (c.charAt(0) == " ") c = c.substring(1, c.length);
     if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
   }
@@ -25,7 +25,7 @@ function deleteCookie(name) {
 }
 
 $(document).ready(function () {
-  var darkMode = getCookie("dark_mode");
+  const darkMode = getCookie("dark_mode");
   if (darkMode === "true") {
     $("#darkModeToggle").prop("checked", true);
     $("body").addClass("dark-mode");
@@ -35,7 +35,7 @@ $(document).ready(function () {
   }
 
   $("#darkModeToggle").on("change", function () {
-    var darkModeValue = $(this).is(":checked") ? "true" : "false";
+    const darkModeValue = $(this).is(":checked") ? "true" : "false";
     setCookie("dark_mode", darkModeValue, 7);
     if (darkModeValue === "true") {
       $("body").addClass("dark-mode");
@@ -45,12 +45,17 @@ $(document).ready(function () {
   });
 
   let files;
-  let sessionId = getCookie("session_id");
+  let sessionId;
 
   $("#audioFile").on("change", function () {
     files = this.files;
     $("#fileName").text(files.length > 0 ? files[0].name : "");
     $("#transcribeButton").prop("disabled", files.length === 0);
+
+    // Assign a new session ID for each file upload
+    sessionId = generateUUID();
+    $("#sessionId").val(sessionId);
+    setCookie("session_id", sessionId, 1);
   });
 
   $("#uploadForm").on("submit", function (e) {
@@ -63,7 +68,7 @@ $(document).ready(function () {
     // Clear previous session data
     deleteCookie("session_id");
 
-    let formData = new FormData();
+    const formData = new FormData();
     $.each(files, function (i, file) {
       formData.append("files", file);
     });
@@ -99,8 +104,7 @@ $(document).ready(function () {
             sessionId = response.session_id;
             setCookie("session_id", sessionId, 1); // Set session ID in cookie for 1 day
             $("#sessionId").val(sessionId);
-            $("#statusMessage").text("Preparing download link...").show();
-            downloadFiles(sessionId);
+            checkDownloadStatus(sessionId);
           },
           error: function (response) {
             $("#statusMessage").text("Failed to upload files.");
@@ -112,6 +116,27 @@ $(document).ready(function () {
       },
     });
   });
+
+  function checkDownloadStatus(sessionId) {
+    const interval = setInterval(function () {
+      $.ajax({
+        url: "/check_status",
+        type: "GET",
+        success: function (response) {
+          if (!response.transcription_in_progress) {
+            clearInterval(interval);
+            downloadFiles(sessionId);
+          }
+        },
+        error: function () {
+          clearInterval(interval);
+          $("#statusMessage").text("Failed to complete transcription.");
+          $("#transcribeButton").prop("disabled", false);
+          $(".lds-circle").hide(); // Hide the spinner on error
+        },
+      });
+    }, 5000); // Check every 5 seconds
+  }
 
   function downloadFiles(sessionId) {
     $.ajax({
@@ -132,6 +157,17 @@ $(document).ready(function () {
         $(".lds-circle").hide(); // Hide the spinner on error
       },
     });
+  }
+
+  function generateUUID() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0,
+          v = c == "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
   }
 
   window.onbeforeunload = function () {
