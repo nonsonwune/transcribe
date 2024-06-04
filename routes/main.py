@@ -11,8 +11,8 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 from pathlib import Path
-from file_processing import process_files
 from utils import allowed_file, clear_directory, upload_to_gcs, download_from_gcs
+from tasks import process_files_task, transcription_complete
 
 main_bp = Blueprint("main", __name__)
 
@@ -21,6 +21,7 @@ main_bp = Blueprint("main", __name__)
 def set_dark_mode():
     dark_mode = request.form.get("dark_mode")
     session["dark_mode"] = dark_mode
+    session.modified = True
     return jsonify({"dark_mode": dark_mode})
 
 
@@ -41,6 +42,11 @@ def upload_files():
     try:
         logging.info("Home Page endpoint hit")
         if request.method == "POST":
+            if "session_id" not in session:
+                session["session_id"] = str(uuid.uuid4())
+            session_id = session["session_id"]
+            logging.info(f"Session ID: {session_id}")
+
             if session.get("transcription_in_progress"):
                 return (
                     jsonify({"error": "A transcription is already in progress."}),
@@ -52,11 +58,6 @@ def upload_files():
                 return jsonify({"message": "No files part"}), 400
 
             files = request.files.getlist("files")
-
-            if "session_id" not in session:
-                session["session_id"] = str(uuid.uuid4())
-            session_id = session["session_id"]
-            logging.info(f"Session ID: {session_id}")
 
             session_uploads_dir = Path(current_app.config["UPLOADS_DIR"]) / session_id
             session_transcriptions_dir = (
@@ -100,22 +101,20 @@ def upload_files():
             session["transcription_in_progress"] = True
             session.modified = True
 
-            process_files(
-                session_uploads_dir,
-                session_transcriptions_dir,
-                session_non_wave_files_dir,
-                session_id,
+            # Call the Celery task
+            process_files_task.apply_async(
+                args=[
+                    str(session_uploads_dir),
+                    str(session_transcriptions_dir),
+                    str(session_non_wave_files_dir),
+                    session_id,
+                ],
+                link=transcription_complete.s(session_id),
             )
-
-            session.pop("transcription_in_progress", None)
-            session.modified = True
 
             return (
                 jsonify(
-                    {
-                        "message": "Files uploaded and processed successfully",
-                        "session_id": session_id,
-                    }
+                    {"message": "Files uploaded successfully", "session_id": session_id}
                 ),
                 200,
             )
@@ -161,4 +160,16 @@ def cleanup():
         return jsonify({"message": "Cleanup successful"}), 200
     except Exception as e:
         logging.error(f"Exception occurred in cleanup: {e}", exc_info=True)
+        return jsonify({"message": "Internal server error"}), 500
+
+
+@main_bp.route("/cancel_transcription", methods=["POST"])
+def cancel_transcription():
+    try:
+        if "session_id" in session:
+            session.pop("transcription_in_progress", None)
+            session.modified = True
+        return jsonify({"message": "Transcription canceled successfully"}), 200
+    except Exception as e:
+        logging.error(f"Exception occurred in cancel_transcription: {e}", exc_info=True)
         return jsonify({"message": "Internal server error"}), 500

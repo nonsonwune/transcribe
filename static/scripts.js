@@ -85,6 +85,9 @@ $(document).ready(function () {
         $("#transcribeButton").text("Transcribing").show();
         $(".lds-circle").show(); // Show the spinner
 
+        // Add session ID to formData
+        formData.append("session_id", sessionId);
+
         $.ajax({
           url: "/",
           type: "POST",

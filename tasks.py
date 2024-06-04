@@ -1,14 +1,12 @@
-# file_processing.py
-import os
 import logging
 from pathlib import Path
-from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
 from transcription_service import TranscriptionService, process_audio_file_wrapper
 import zipfile
+from celery_app import celery
 from utils import upload_to_gcs, clear_directory
-from celery_config import create_celery_app
-
-celery = create_celery_app()
+from flask import current_app
+import os
 
 
 @celery.task
@@ -22,23 +20,28 @@ def process_files_task(upload_dir, transcriptions_dir, non_wave_files_dir, sessi
 
         service = TranscriptionService(auth_token, session_id)
 
-        audio_files = list(Path(upload_dir).iterdir())
+        upload_dir = Path(upload_dir)
+        transcriptions_dir = Path(transcriptions_dir)
+        non_wave_files_dir = Path(non_wave_files_dir)
+
+        audio_files = list(upload_dir.iterdir())
         if not audio_files:
             logging.error("No audio files found in uploads directory.")
             return
 
         logging.info(f"Found {len(audio_files)} audio files to process.")
 
-        with Pool(processes=4) as pool:
-            pool.map(
-                process_audio_file_wrapper,
-                [(service, audio_file) for audio_file in audio_files],
-            )
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [
+                executor.submit(process_audio_file_wrapper, (service, audio_file))
+                for audio_file in audio_files
+            ]
+            for future in futures:
+                future.result()
 
         logging.info("Processing complete. Preparing files for download.")
         prepare_files_for_download(transcriptions_dir, session_id)
 
-        # Clear the uploads directory after processing
         clear_directory(upload_dir)
 
     except Exception as e:
@@ -61,8 +64,18 @@ def prepare_files_for_download(transcriptions_dir, session_id):
                     zipf.write(file_path, arcname)
 
         logging.info(f"Processed files zipped and ready for download at {zip_path}")
-        upload_to_gcs(current_app.config["GCS_BUCKET_NAME"], zip_path, zip_path.name)
+        with current_app.app_context():
+            upload_to_gcs(
+                current_app.config["GCS_BUCKET_NAME"], zip_path, zip_path.name
+            )
     except Exception as e:
         logging.error(
             f"Exception occurred in prepare_files_for_download: {e}", exc_info=True
         )
+
+
+@celery.task
+def transcription_complete(session_id, **kwargs):
+    with current_app.app_context():
+        session["transcription_in_progress"] = False
+        session.modified = True
