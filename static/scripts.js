@@ -138,6 +138,7 @@ $(document).ready(function () {
     }, 5000); // Check every 5 seconds
   }
 
+  // scripts.js
   function downloadFiles(sessionId) {
     $.ajax({
       url: "/download?session_id=" + sessionId,
@@ -146,6 +147,7 @@ $(document).ready(function () {
         $("#statusMessage")
           .text("Transcription complete. You can download the files now.")
           .show();
+        $("#downloadLink").attr("href", "/download?session_id=" + sessionId);
         $("#downloadLink").show();
         $(".lds-circle").hide(); // Hide the spinner on success
         $("#transcribeButton").prop("disabled", false);

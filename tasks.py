@@ -5,12 +5,10 @@ from transcription_service import TranscriptionService, process_audio_file_wrapp
 import zipfile
 from celery_app import celery
 from utils import upload_to_gcs, clear_directory
-from flask import current_app
+from flask import current_app, Flask
 import os
 
 # Create a dummy app context for standalone script execution
-from flask import Flask
-
 app = Flask(__name__)
 app.config.from_object("config.Config")
 
@@ -82,7 +80,7 @@ def prepare_files_for_download(transcriptions_dir, session_id):
 def transcription_complete(session_id, **kwargs):
     with app.app_context():
         session = celery.flask_app.extensions["flask-session"].open_session(
-            celery.flask_app, request
+            celery.flask_app
         )
         session["transcription_in_progress"] = False
         session.modified = True

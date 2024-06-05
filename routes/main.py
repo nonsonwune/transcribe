@@ -1,3 +1,4 @@
+# routes/main.py
 import logging
 import uuid
 from flask import (
@@ -42,16 +43,11 @@ def upload_files():
     try:
         logging.info("Home Page endpoint hit")
         if request.method == "POST":
-            if "session_id" not in session:
-                session["session_id"] = str(uuid.uuid4())
-            session_id = session["session_id"]
-            logging.info(f"Session ID: {session_id}")
-
-            if session.get("transcription_in_progress"):
-                return (
-                    jsonify({"error": "A transcription is already in progress."}),
-                    400,
-                )
+            # Generate a new session ID and clear previous session data
+            session_id = str(uuid.uuid4())
+            session.clear()
+            session["session_id"] = session_id
+            logging.info(f"New Session ID: {session_id}")
 
             if "files" not in request.files:
                 logging.error("No files part in request")
@@ -109,7 +105,7 @@ def upload_files():
                     str(session_non_wave_files_dir),
                     session_id,
                 ],
-                link=transcription_complete.s(session_id),
+                link_error=transcription_complete.s(session_id),
             )
 
             return (

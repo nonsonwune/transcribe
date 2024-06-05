@@ -1,6 +1,7 @@
+# app.py
 from flask import Flask, session
 from config import Config
-from routes import main_bp
+from routes.main import main_bp
 import logging
 from utils import setup_directories
 from celery_app import celery  # Import the celery instance

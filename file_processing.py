@@ -21,7 +21,6 @@ def process_files_task(upload_dir, transcriptions_dir, non_wave_files_dir, sessi
             return
 
         service = TranscriptionService(auth_token, session_id)
-
         audio_files = list(Path(upload_dir).iterdir())
         if not audio_files:
             logging.error("No audio files found in uploads directory.")
@@ -37,31 +36,56 @@ def process_files_task(upload_dir, transcriptions_dir, non_wave_files_dir, sessi
 
         logging.info("Processing complete. Preparing files for download.")
         prepare_files_for_download(transcriptions_dir, session_id)
-
-        # Clear the uploads directory after processing
         clear_directory(upload_dir)
 
     except Exception as e:
         logging.error(f"Exception occurred in process_files: {e}", exc_info=True)
 
 
-def prepare_files_for_download(transcriptions_dir, session_id):
+def prepare_files_for_download(session_id, transcriptions_dir):
     try:
         logging.info(f"Preparing files for download for session ID: {session_id}")
         zip_path = Path(f"processed_files_{session_id}.zip")
         if zip_path.exists():
             zip_path.unlink()
 
+        session_transcriptions_dir = Path(transcriptions_dir) / session_id
+
         with zipfile.ZipFile(zip_path, "w") as zipf:
-            for root, dirs, files in os.walk(transcriptions_dir):
+            for root, dirs, files in os.walk(session_transcriptions_dir):
                 for file in files:
                     file_path = Path(root) / file
-                    arcname = file_path.relative_to(transcriptions_dir)
+                    arcname = file_path.relative_to(session_transcriptions_dir)
                     logging.info(f"Adding file {file_path} as {arcname} to zip")
                     zipf.write(file_path, arcname)
 
         logging.info(f"Processed files zipped and ready for download at {zip_path}")
-        upload_to_gcs(current_app.config["GCS_BUCKET_NAME"], zip_path, zip_path.name)
+        upload_to_gcs(current_app.config["GCS_BUCKET_NAME"], zip_path, str(zip_path))
+    except Exception as e:
+        logging.error(
+            f"Exception occurred in prepare_files_for_download: {e}", exc_info=True
+        )
+
+
+def prepare_files_for_download(session_id, transcriptions_dir):
+    try:
+        logging.info(f"Preparing files for download for session ID: {session_id}")
+        zip_path = Path(f"processed_files_{session_id}.zip")
+        if zip_path.exists():
+            zip_path.unlink()
+
+        session_transcriptions_dir = Path(transcriptions_dir) / session_id
+
+        with zipfile.ZipFile(zip_path, "w") as zipf:
+            for root, dirs, files in os.walk(session_transcriptions_dir):
+                for file in files:
+                    file_path = Path(root) / file
+                    arcname = file_path.relative_to(session_transcriptions_dir)
+                    logging.info(f"Adding file {file_path} as {arcname} to zip")
+                    zipf.write(file_path, arcname)
+
+        logging.info(f"Processed files zipped and ready for download at {zip_path}")
+        upload_to_gcs(current_app.config["GCS_BUCKET_NAME"], zip_path, str(zip_path))
     except Exception as e:
         logging.error(
             f"Exception occurred in prepare_files_for_download: {e}", exc_info=True
