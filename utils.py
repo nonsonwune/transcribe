@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import os
 
 
 def setup_directories(app):
@@ -18,3 +19,13 @@ def clear_directory(directory):
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {"wav", "mp3", "mp4", "m4a"}
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def cleanup_empty_directories(directory):
+    for dirpath, dirnames, filenames in os.walk(directory, topdown=False):
+        if not dirnames and not filenames:
+            try:
+                os.rmdir(dirpath)
+                logging.info(f"Removed empty directory: {dirpath}")
+            except OSError as e:
+                logging.error(f"Error removing directory {dirpath}: {e}")

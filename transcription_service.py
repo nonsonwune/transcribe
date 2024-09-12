@@ -18,19 +18,38 @@ class TranscriptionService:
         )
 
     def convert_to_wav(self, audio_path):
-        audio_path = Path(audio_path)
-        if audio_path.suffix.lower() != ".wav":
-            audio = AudioSegment.from_file(audio_path)
-            wav_path = audio_path.with_suffix(".wav")
-            audio.export(wav_path, format="wav")
-            logging.info(f"Converted {audio_path} to {wav_path}")
+        try:
+            audio_path = Path(audio_path)
+            if not audio_path.is_file():
+                logging.error(f"Input file does not exist: {audio_path}")
+                return None
 
+            if audio_path.suffix.lower() == ".wav":
+                logging.info(f"File is already in WAV format: {audio_path}")
+                return audio_path
+
+            wav_path = audio_path.with_suffix(".wav")
             non_wave_files_dir = Path("non_wave_files") / self.session_id
             non_wave_files_dir.mkdir(parents=True, exist_ok=True)
-            shutil.move(audio_path, non_wave_files_dir / audio_path.name)
 
-            return wav_path
-        return audio_path
+            try:
+                audio = AudioSegment.from_file(audio_path)
+                audio.export(wav_path, format="wav")
+                logging.info(f"Successfully converted {audio_path} to {wav_path}")
+
+                shutil.move(audio_path, non_wave_files_dir / audio_path.name)
+                logging.info(
+                    f"Moved original file to {non_wave_files_dir / audio_path.name}"
+                )
+
+                return wav_path
+            except Exception as e:
+                logging.error(f"Error converting {audio_path} to WAV: {str(e)}")
+                return None
+
+        except Exception as e:
+            logging.error(f"Unexpected error in convert_to_wav: {str(e)}")
+            return None
 
     def transcribe_audio(self, audio_path):
         model = whisper.load_model("base")
@@ -128,25 +147,41 @@ class TranscriptionService:
 
 def process_audio_file(service, audio_file):
     try:
-        logging.info(f"Starting transcription for {audio_file}")
-        audio_file = service.convert_to_wav(audio_file)
-        logging.info(f"Audio file path: {audio_file}")
+        logging.info(f"Starting processing for {audio_file}")
 
-        if not audio_file.is_file():
-            logging.error(f"Error: The file {audio_file} does not exist.")
-            return
+        wav_file = service.convert_to_wav(audio_file)
+        if wav_file is None:
+            logging.error(f"Failed to convert {audio_file} to WAV format")
+            return False
 
-        transcription, segments = service.transcribe_audio(audio_file)
-        segments = service.perform_speaker_diarization(audio_file, segments)
+        logging.info(f"Successfully converted to WAV: {wav_file}")
+
+        transcription, segments = service.transcribe_audio(wav_file)
+        if not transcription or not segments:
+            logging.error(f"Transcription failed for {wav_file}")
+            return False
+
+        logging.info(f"Transcription successful for {wav_file}")
+
+        segments = service.perform_speaker_diarization(wav_file, segments)
+        if not segments:
+            logging.error(f"Diarization failed for {wav_file}")
+            return False
+
+        logging.info(f"Diarization successful for {wav_file}")
+
         service.save_transcription_with_speaker_labels(
-            transcription, segments, audio_file
+            transcription, segments, wav_file
         )
-        service.save_transcription_as_json(transcription, segments, audio_file)
-        service.save_transcription_as_srt(transcription, segments, audio_file)
-        service.save_transcription_as_vtt(transcription, segments, audio_file)
-        logging.info(f"Processed {audio_file}")
+        service.save_transcription_as_json(transcription, segments, wav_file)
+        service.save_transcription_as_srt(transcription, segments, wav_file)
+        service.save_transcription_as_vtt(transcription, segments, wav_file)
+
+        logging.info(f"Successfully processed {wav_file}")
+        return True
     except Exception as e:
-        logging.error(f"An error occurred processing {audio_file}: {e}")
+        logging.error(f"An error occurred processing {audio_file}: {str(e)}")
+        return False
 
 
 def process_audio_file_wrapper(args):
