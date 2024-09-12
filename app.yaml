@@ -1,0 +1,23 @@
+runtime: custom
+env: flex
+
+env_variables:
+  PYANNOTE_AUTH_TOKEN: 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
+  SECRET_KEY: 42e9e2483b4af92719ec4788a107bb70e53fac00386435e7982ecc984e87ae69
+resources:
+  cpu: 1
+  memory_gb: 4
+  disk_size_gb: 10
+
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 5
+  cpu_utilization:
+    target_utilization: 0.65
+
+handlers:
+  - url: /static
+    static_dir: static
+
+  - url: /.*
+    script: auto

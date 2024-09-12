@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", function () {
   const body = document.body;
   const darkModeToggle = document.getElementById("darkModeToggle");
@@ -12,12 +13,40 @@ document.addEventListener("DOMContentLoaded", function () {
   darkModeToggle.addEventListener("change", function () {
     body.classList.toggle("dark-mode", this.checked);
     console.log(this.checked ? "Dark mode enabled" : "Dark mode disabled");
+=======
+$(document).ready(function () {
+  // Check the session for dark mode preference
+  $.ajax({
+    url: "/get_dark_mode",
+    type: "GET",
+    success: function (response) {
+      if (response.dark_mode === "true") {
+        $("#darkModeToggle").prop("checked", true);
+        $("body").addClass("dark-mode");
+      } else {
+        $("#darkModeToggle").prop("checked", false);
+        $("body").removeClass("dark-mode");
+      }
+    },
+>>>>>>> sankofa
   });
 
-  uploadAudioButton.addEventListener("click", function () {
-    fileInput.click();
+  $("#darkModeToggle").on("change", function () {
+    $.ajax({
+      url: "/set_dark_mode",
+      type: "POST",
+      data: { dark_mode: $(this).is(":checked") ? "true" : "false" },
+      success: function (response) {
+        if (response.dark_mode === "true") {
+          $("body").addClass("dark-mode");
+        } else {
+          $("body").removeClass("dark-mode");
+        }
+      },
+    });
   });
 
+<<<<<<< HEAD
   fileInput.addEventListener("change", function (event) {
     if (fileInput.files.length > 0) {
       updateFileList(fileInput.files);
@@ -25,26 +54,67 @@ document.addEventListener("DOMContentLoaded", function () {
       uploadMessage.className = "alert alert-info";
       uploadMessage.style.display = "block";
       transcribeFilesButton.style.display = "block"; // Show the transcribe button
-    }
+=======
+  let files;
+  let sessionId;
+
+  $("#audioFile").on("change", function () {
+    files = this.files;
+    $("#fileName").text(files.length > 0 ? files[0].name : "");
+    $("#transcribeButton").prop("disabled", files.length === 0);
   });
 
-  uploadForm.addEventListener("submit", function (event) {
-    event.preventDefault(); // Prevent the default form submission behavior
+  $("#uploadForm").on("submit", function (e) {
+    e.preventDefault();
+    if (!files) {
+      alert("Please select a file first.");
+      return;
+>>>>>>> sankofa
+    }
 
-    const formData = new FormData(uploadForm);
+    let formData = new FormData();
+    $.each(files, function (i, file) {
+      formData.append("files", file);
+    });
 
-    fetch("/clear_uploads")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Clear uploads failed: ${response.statusText}`);
+    $("#statusMessage").text("Checking status...").show();
+    $.ajax({
+      url: "/check_status",
+      type: "GET",
+      success: function (response) {
+        if (response.transcription_in_progress) {
+          alert("A transcription is already in progress.");
+          return;
         }
-        return response.json();
-      })
-      .then(() => {
-        return fetch("/", {
-          method: "POST",
-          body: formData,
+
+        $("#statusMessage")
+          .text("Your audio recording is being transcribed, please wait....")
+          .show();
+        $("#transcribeButton").prop("disabled", true);
+        $("#transcribeButton").text("Transcribing").show();
+        $(".lds-circle").show(); // Show the spinner
+
+        $.ajax({
+          url: "/",
+          type: "POST",
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function (response) {
+            $("#statusMessage").text("Transcribing...").show();
+            sessionId = response.session_id;
+            $("#sessionId").val(sessionId);
+            $("#statusMessage").text("Preparing download link...").show();
+            downloadFiles(sessionId);
+          },
+          error: function (response) {
+            $("#statusMessage").text("Failed to upload files.");
+            $("#transcribeButton").prop("disabled", false);
+            $("#transcribeButton").text("Transcribe").show();
+            $(".lds-circle").hide(); // Hide the spinner on error
+          },
         });
+<<<<<<< HEAD
       })
       .then((response) => {
         if (!response.ok) {
@@ -106,6 +176,49 @@ document.addEventListener("DOMContentLoaded", function () {
       listItem.className = "list-group-item";
       listItem.textContent = file.name;
       fileList.appendChild(listItem);
+=======
+      },
+    });
+  });
+
+  function downloadFiles(sessionId) {
+    $.ajax({
+      url: "/download?session_id=" + sessionId,
+      type: "GET",
+      success: function () {
+        $("#statusMessage")
+          .text("Transcription complete. You can download the files now.")
+          .show();
+        $("#downloadLink").show();
+        $(".lds-circle").hide(); // Hide the spinner on success
+        $("#transcribeButton").prop("disabled", false);
+        $("#transcribeButton").text("Transcribe").show();
+      },
+      error: function () {
+        $("#statusMessage").text("Failed to complete transcription.");
+        $("#transcribeButton").prop("disabled", false);
+        $(".lds-circle").hide(); // Hide the spinner on error
+      },
+>>>>>>> sankofa
     });
   }
+
+  window.onbeforeunload = function () {
+    $.ajax({
+      url: "/cancel_transcription",
+      type: "POST",
+      async: false, // Synchronous request
+      success: function (response) {
+        console.log(response.message);
+      },
+      error: function () {
+        console.log("Failed to cancel transcription.");
+      },
+    });
+  };
+
+  $("#downloadLink").on("click", function (e) {
+    e.preventDefault();
+    window.location.href = "/download?session_id=" + $("#sessionId").val();
+  });
 });

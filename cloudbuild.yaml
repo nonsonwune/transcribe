@@ -1,0 +1,18 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/nonso-transcriber/app-with-ffmpeg", "."]
+    dir: "."
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/nonso-transcriber/app-with-ffmpeg"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        gcloud config set project nonso-transcriber
+        gcloud app deploy --image-url=gcr.io/nonso-transcriber/app-with-ffmpeg --verbosity=debug --quiet
+
+images:
+  - "gcr.io/nonso-transcriber/app-with-ffmpeg"

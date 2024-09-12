@@ -1,33 +1,38 @@
-import os
+from flask import Flask, session
+from flask_session import Session
+from config import Config
+from routes import main_bp
 import logging
-from pathlib import Path
-from flask import Flask, request, send_file, render_template, jsonify
-from werkzeug.utils import secure_filename
-from dotenv import load_dotenv
-from multiprocessing import Pool
-from transcription_service import TranscriptionService, process_audio_file_wrapper
-from utils import allowed_file
-import zipfile
-import shutil
-
-load_dotenv()
+from utils import setup_directories
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-app = Flask(__name__)
 
-# Ensure the uploads directory exists
-uploads_dir = Path("uploads")
-uploads_dir.mkdir(exist_ok=True)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-# Ensure the transcriptions directory exists
-transcriptions_dir = Path("transcriptions")
-transcriptions_dir.mkdir(exist_ok=True)
+    # Setup session management
+    Session(app)
+
+    # Ensure necessary directories exist
+    with app.app_context():
+        setup_directories(app)
+
+    # Register blueprint
+    app.register_blueprint(main_bp)
+
+    @app.before_request
+    def make_session_permanent():
+        session.permanent = True
+
+    return app
 
 
+<<<<<<< HEAD
 @app.route("/clear_uploads", methods=["GET"])
 def clear_uploads():
     for file in uploads_dir.iterdir():
@@ -137,6 +142,11 @@ def download_files():
 
     return response
 
+=======
+# for gunicorn
+app = create_app()
+>>>>>>> sankofa
 
 if __name__ == "__main__":
+    app = create_app()
     app.run(debug=True, use_reloader=False)

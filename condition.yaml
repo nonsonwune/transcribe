@@ -1,0 +1,5 @@
+title: Condition for Cloud Build to act as App Engine service account
+description: This condition allows the Cloud Build service account to act as the App Engine service account during deployment.
+expression: >
+  resource.name == 'projects/nonso-transcriber/serviceAccounts/nonso-transcriber@appspot.gserviceaccount.com'
+  && request.auth.claims.email == '621127990837@cloudbuild.gserviceaccount.com'

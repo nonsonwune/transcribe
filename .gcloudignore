@@ -1,0 +1,13 @@
+.env
+venv/
+trec_env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.*
+non_wave_files/
+transcriptions/
+uploads/
+*.sh
+*.json

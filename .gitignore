@@ -164,4 +164,13 @@ cython_debug/
 transcriptions/
 uploads/
 non_wave_files/
+<<<<<<< HEAD
 processed_files.zip
+=======
+*.zip
+
+processed_files.zip
+flask_session/
+*.sh
+*.json
+>>>>>>> sankofa
