@@ -2,8 +2,9 @@ runtime: custom
 env: flex
 
 env_variables:
-  PYANNOTE_AUTH_TOKEN: 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
-  SECRET_KEY: 42e9e2483b4af92719ec4788a107bb70e53fac00386435e7982ecc984e87ae69
+  PYANNOTE_AUTH_TOKEN: ${PYANNOTE_AUTH_TOKEN}
+  SECRET_KEY: ${SECRET_KEY}
+
 resources:
   cpu: 1
   memory_gb: 4
@@ -18,6 +19,5 @@ automatic_scaling:
 handlers:
   - url: /static
     static_dir: static
-
   - url: /.*
     script: auto

@@ -1,18 +1,23 @@
 steps:
+  # Build the Docker image
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/nonso-transcriber/app-with-ffmpeg", "."]
     dir: "."
 
+  # Push the Docker image to Google Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/nonso-transcriber/app-with-ffmpeg"]
 
+  # Deploy to App Engine with environment variables from Secret Manager
   - name: "gcr.io/cloud-builders/gcloud"
     entrypoint: "bash"
     args:
       - "-c"
       - |
         gcloud config set project nonso-transcriber
-        gcloud app deploy --image-url=gcr.io/nonso-transcriber/app-with-ffmpeg --verbosity=debug --quiet
+        gcloud app deploy --image-url=gcr.io/nonso-transcriber/app-with-ffmpeg --verbosity=debug --quiet \
+        --set-env-vars PYANNOTE_AUTH_TOKEN=$$(gcloud secrets versions access latest --secret=PYANNOTE_AUTH_TOKEN) \
+        --set-env-vars SECRET_KEY=$$(gcloud secrets versions access latest --secret=SECRET_KEY)
 
 images:
   - "gcr.io/nonso-transcriber/app-with-ffmpeg"
